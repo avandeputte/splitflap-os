@@ -1856,7 +1856,10 @@ function loadSettingsData(){
     if(currencyEl) currencyEl.value = data.currency_symbol || '$';
     // Transition style settings
     const transStyle = document.getElementById('transitionStyle');
-    if(transStyle){ transStyle.value = data.transition_style || 'ltr'; updateTransitionSpeedDefault(transStyle.value); }
+    if(transStyle){
+      transStyle.value = data.transition_style || 'ltr';
+      updateTransitionSpeedDefault(transStyle.value);
+    }
     const transSpeed = document.getElementById('transitionSpeed');
     if(transSpeed) transSpeed.value = data.transition_speed || 15;
     // Global timezone picker
@@ -2116,10 +2119,12 @@ function saveGlobal(){
 
 function updateTransitionSpeedDefault(style){
   const speedEl = document.getElementById('transitionSpeed');
-  if(!speedEl) return;
-  if(style === 'slot') speedEl.value = 80;
-  else if(style === 'sync') speedEl.value = 0;
-  else speedEl.value = 15;
+  const speedWrap = document.getElementById('transitionSpeedWrap');
+  const composeSpeedWrap = document.getElementById('composeSpeedWrap');
+  const isSyncStyle = style === 'sync';
+  if(speedEl) speedEl.value = style === 'slot' ? 80 : style === 'sync' ? 0 : 15;
+  if(speedWrap) speedWrap.style.display = isSyncStyle ? 'none' : '';
+  if(composeSpeedWrap) composeSpeedWrap.style.display = isSyncStyle ? 'none' : '';
 }
 
 function toggleAutoHome(){
