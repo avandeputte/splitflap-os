@@ -50,6 +50,8 @@ const TRANSITION_STYLES = [
   {v:'spiral',       l:'Spiral'},
   {v:'columns',      l:'Columns'},
   {v:'alternating',  l:'Alt (↔↔↔)'},
+  {v:'sync',         l:'Synchronized arrival'},
+  {v:'slot',         l:'Slot machine'},
 ];
 
 function buildStyleOptions(selected='ltr'){
@@ -704,11 +706,13 @@ function removeFromPlaylist(idx){
 }
 
 function sync(){
+  const style = document.getElementById('composeStyleInput')?.value || 'ltr';
+  const speed = parseInt(document.getElementById('composeSpeedInput')?.value) || 15;
   const pages = [{
     text:  updatePreview(),
     delay: 5,
-    style: 'ltr',
-    speed: 15,
+    style,
+    speed,
   }];
   fetch('/update_playlist',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({pages, delay: 5})});
@@ -1850,6 +1854,11 @@ function loadSettingsData(){
     // Currency symbol
     const currencyEl = document.getElementById('currencySymbol');
     if(currencyEl) currencyEl.value = data.currency_symbol || '$';
+    // Transition style settings
+    const transStyle = document.getElementById('transitionStyle');
+    if(transStyle){ transStyle.value = data.transition_style || 'ltr'; updateTransitionSpeedDefault(transStyle.value); }
+    const transSpeed = document.getElementById('transitionSpeed');
+    if(transSpeed) transSpeed.value = data.transition_speed || 15;
     // Global timezone picker
     const tzEl = document.getElementById('globalTzPicker');
     if(tzEl){
@@ -2090,6 +2099,8 @@ function saveGlobal(){
     notify_enabled: document.getElementById('notifyEnabled').checked,
     notify_display_seconds: parseInt(document.getElementById('notifyDisplaySeconds').value) || 10,
     currency_symbol: document.getElementById('currencySymbol')?.value || '$',
+    transition_style: document.getElementById('transitionStyle') ? document.getElementById('transitionStyle').value : 'ltr',
+    transition_speed: parseInt(document.getElementById('transitionSpeed') ? document.getElementById('transitionSpeed').value : 15) || 15,
   })}).then(()=>{
     initLiveGrids(rows, cols);
     buildAppsGrid(); // re-check compatibility after grid change
@@ -2101,12 +2112,6 @@ function saveGlobal(){
       fetch('/mqtt_reconnect',{method:'POST'});
     }
   });
-}
-
-function toggleFlapEffectSpeed(){
-  const v = document.getElementById('flapEffect');
-  const wrap = document.getElementById('flapEffectSpeedWrap');
-  if(v && wrap) wrap.style.display = v.value !== 'none' ? 'flex' : 'none';
 }
 
 function toggleAutoHome(){
@@ -2576,10 +2581,14 @@ function tmFinishEarly(){
 // ============================================================
 //  INIT
 // ============================================================
-// Populate default transition style select
+// Populate transition style selects
 (function(){
   const sel = document.getElementById('styleInput');
   if(sel) sel.innerHTML = buildStyleOptions('ltr');
+  const ts = document.getElementById('transitionStyle');
+  if(ts) ts.innerHTML = buildStyleOptions('ltr');
+  const cs = document.getElementById('composeStyleInput');
+  if(cs) cs.innerHTML = buildStyleOptions('ltr');
 })();
 
 document.querySelectorAll('button[onclick="saveGlobal()"]:not(#settingsFab)').forEach(el => el.remove());
@@ -2836,6 +2845,13 @@ function renderAppPlaylistEntries(){
         <input type="number" class="ap-entry-dur" value="${entry.duration||10}" min="1" max="600" step="1"
           onchange="appPlaylistEntries[${i}].duration=parseInt(this.value)||10" title="Duration (seconds)">
         <span style="font-size:.75rem;color:#888">s</span>
+        <select style="background:#111;color:#fff;border:1px solid #444;border-radius:3px;padding:2px 4px;font-size:.72rem"
+          onchange="appPlaylistEntries[${i}].style=this.value" title="Transition style">
+          ${buildStyleOptions(entry.style||'ltr')}
+        </select>
+        <input type="number" value="${entry.speed||15}" min="0" max="500" step="5" title="Speed (ms/module)"
+          style="width:40px;background:#111;color:#fff;border:1px solid #444;border-radius:3px;padding:2px 4px;font-size:.72rem;text-align:center"
+          onchange="appPlaylistEntries[${i}].speed=parseInt(this.value)||15">
         <button class="ap-entry-btn" onclick="moveAppEntry(${i},-1)" title="Move up">↑</button>
         <button class="ap-entry-btn" onclick="moveAppEntry(${i},1)" title="Move down">↓</button>
         <button class="ap-entry-btn" onclick="removeAppEntry(${i})" title="Remove">✕</button>`;
