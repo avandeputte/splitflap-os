@@ -1,6 +1,9 @@
 def fetch(settings, format_lines, get_rows, get_cols):
     import yfinance as yf
-    tickers = [s.strip() for s in settings.get('stocks_list', 'MSFT,GOOG,NVDA').split(',')]
+    tickers = [s.strip() for s in settings.get('stocks_list', '').split(',') if s.strip()]
+    if not tickers:
+        return [format_lines('STOCKS', 'NO TICKERS', 'CONFIGURE')]
+    currency = settings.get('currency_symbol', '$').strip() or '$'
     rows = get_rows()
     pages = []
     for i in range(0, len(tickers), rows):
@@ -14,7 +17,7 @@ def fetch(settings, format_lines, get_rows, get_cols):
                 prev = info['previousClose']
                 chg = ((price - prev) / prev) * 100
                 icon = '🟩' if chg >= 0 else '🟥'
-                price_lines.append(f'{sym} ${price:.2f}')
+                price_lines.append(f'{sym} {currency}{price:.2f}')
                 change_lines.append(f'{sym} {icon}{chg:+.1f}%')
             except Exception:
                 price_lines.append(f'{sym} ERR')

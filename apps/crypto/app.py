@@ -1,6 +1,9 @@
 def fetch(settings, format_lines, get_rows, get_cols):
     import requests
-    coins = [s.strip() for s in settings.get('crypto_list', 'bitcoin,ethereum,solana').split(',')]
+    coins = [s.strip() for s in settings.get('crypto_list', '').split(',') if s.strip()]
+    if not coins:
+        return [format_lines('CRYPTO', 'NO COINS', 'CONFIGURE')]
+    currency = settings.get('currency_symbol', '$').strip() or '$'
     try:
         r = requests.get(
             'https://api.coingecko.com/api/v3/simple/price',
@@ -20,7 +23,7 @@ def fetch(settings, format_lines, get_rows, get_cols):
             chg = d.get('usd_24h_change')
             sym = c[:5].upper()
             if price is not None:
-                price_lines.append(f'{sym} ${price:,.0f}' if price >= 1 else f'{sym} ${price:.4f}')
+                price_lines.append(f'{sym} {currency}{price:,.0f}' if price >= 1 else f'{sym} {currency}{price:.4f}')
                 icon = '🟩' if (chg or 0) >= 0 else '🟥'
                 change_lines.append(f'{sym} {icon}{chg:+.1f}%' if chg is not None else f'{sym} N/A')
             else:
