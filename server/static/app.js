@@ -1847,6 +1847,9 @@ function loadSettingsData(){
     document.getElementById('notifyConfig').style.display = notifyEnabled ? 'block' : 'none';
     document.getElementById('notifyDisplaySeconds').value = data.notify_display_seconds || 10;
     renderNotifySources(data.notify_sources || {});
+    // Currency symbol
+    const currencyEl = document.getElementById('currencySymbol');
+    if(currencyEl) currencyEl.value = data.currency_symbol || '$';
     // Global timezone picker
     const tzEl = document.getElementById('globalTzPicker');
     if(tzEl){
@@ -2086,6 +2089,7 @@ function saveGlobal(){
     mqtt_password: document.getElementById('mqttPassword').value,
     notify_enabled: document.getElementById('notifyEnabled').checked,
     notify_display_seconds: parseInt(document.getElementById('notifyDisplaySeconds').value) || 10,
+    currency_symbol: document.getElementById('currencySymbol')?.value || '$',
   })}).then(()=>{
     initLiveGrids(rows, cols);
     buildAppsGrid(); // re-check compatibility after grid change

@@ -94,6 +94,7 @@ def load_settings():
         "anim_style":    "ltr",
         "anim_speed":    "0.4",
         "anim_text":     "SPLIT  FLAP  DISPLAY",
+        "currency_symbol": "$",
         "saved_playlists": {},
         "livestream_interval": "25",
         "livestream_comments": "",
@@ -640,6 +641,10 @@ def send_to_display(text, order=None, raw=False, step_delay_ms=15):
         clean_text = text
     for emoji, char in COLOR_MAP.items():
         clean_text = clean_text.replace(emoji, char)
+    # Apply currency symbol alias: user's currency char → $ (the physical flap position)
+    currency = settings.get('currency_symbol', '$').strip()
+    if currency and currency != '$':
+        clean_text = clean_text.replace(currency.upper(), '$')
     # The physical " flap is addressed as 'q' in the firmware character map
     clean_text = clean_text.replace('"', 'q')
     n = get_module_count()
