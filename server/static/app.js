@@ -977,6 +977,7 @@ const LUCIDE_APP_ICONS = {
   yt_comments:'message-circle', countdown:'timer', world_clock:'globe',
   crypto:'coins', iss:'rocket', anim_rainbow:'rainbow', anim_sweep:'waves',
   anim_twinkle:'sparkles', anim_checker:'grid-3x3', anim_matrix:'binary',
+  anim_random_spin:'shuffle',
   'dad-jokes':'smile', 'motivational-quotes':'quote', 'word-of-the-day':'book-open',
   'bitcoin-fear-greed':'gauge',
   'fortune-cookie':'cookie', 'magic-8-ball':'circle-help', 'shower-thoughts':'cloud-drizzle',

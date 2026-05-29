@@ -139,6 +139,7 @@ def load_settings():
             "world_clock", "crypto", "iss", "metro", "youtube", "yt_comments",
             "dashboard", "demo", "livestream",
             "anim_rainbow", "anim_sweep", "anim_twinkle", "anim_checker", "anim_matrix",
+            "anim_random_spin",
             "word-clock", "moon-phase", "star-wars-quotes",
         ],
     }
