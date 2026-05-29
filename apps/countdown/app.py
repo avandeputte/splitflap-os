@@ -233,5 +233,5 @@ def trigger(settings, conditions):
             state['fired_milestone'] = key
             return True
     except Exception:
-        pass
+        raise
     return False

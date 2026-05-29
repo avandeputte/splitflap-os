@@ -66,5 +66,5 @@ def trigger(settings, conditions):
         if not in_window and state['fired_milestone'] == key:
             state['fired_milestone'] = None
     except Exception:
-        pass
+        raise
     return False

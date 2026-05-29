@@ -612,17 +612,22 @@ def trigger(settings, conditions):
 
     state = getattr(trigger, '_state', None)
     if state is None:
-        state = {'last_code': None, 'last_temp': None}
+        state = {'last_code': None, 'last_temp': None, 'geo_cache': {}}
         setattr(trigger, '_state', state)
 
     try:
-        geo = requests.get(
-            f'https://nominatim.openstreetmap.org/search?postalcode={zip_code}&country=US&format=json&limit=1',
-            timeout=5, headers={'User-Agent': 'SplitFlapOS/1.0'}
-        ).json()
-        if not geo:
-            return False
-        lat, lon = geo[0]['lat'], geo[0]['lon']
+        # Cache geocoding results per zip code
+        if zip_code in state['geo_cache']:
+            lat, lon = state['geo_cache'][zip_code]
+        else:
+            geo = requests.get(
+                f'https://nominatim.openstreetmap.org/search?postalcode={zip_code}&country=US&format=json&limit=1',
+                timeout=5, headers={'User-Agent': 'SplitFlapOS/1.0'}
+            ).json()
+            if not geo:
+                return False
+            lat, lon = geo[0]['lat'], geo[0]['lon']
+            state['geo_cache'] = {zip_code: (lat, lon)}
 
         data = requests.get(
             f'https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}'
@@ -666,5 +671,5 @@ def trigger(settings, conditions):
             return float(wind) >= wind_threshold
 
     except Exception:
-        pass
+        raise
     return False

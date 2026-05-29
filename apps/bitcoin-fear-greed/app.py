@@ -49,5 +49,5 @@ def trigger(settings, conditions):
         if not in_zone:
             state['last_zone'] = None
     except Exception:
-        pass
+        raise
     return False

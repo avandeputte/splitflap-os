@@ -63,5 +63,5 @@ def trigger(settings, conditions):
         if len(state['seen_ids']) > 500:
             state['seen_ids'] = set(list(state['seen_ids'])[-200:])
     except Exception:
-        pass
+        raise
     return False

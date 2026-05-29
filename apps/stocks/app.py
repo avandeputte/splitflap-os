@@ -31,6 +31,7 @@ def fetch(settings, format_lines, get_rows, get_cols):
 def trigger(settings, conditions):
     """Fire when any followed ticker moves beyond the configured threshold or hits a price target."""
     import yfinance as yf
+    import time as _time
 
     condition_type = conditions.get('condition_type', 'pct_change')
     tickers = [s.strip() for s in settings.get('stocks_list', '').split(',') if s.strip()]
@@ -39,7 +40,7 @@ def trigger(settings, conditions):
 
     state = getattr(trigger, '_state', None)
     if state is None:
-        state = {'fired_targets': set()}
+        state = {'fired_targets': set(), '52w_cache': {}}
         setattr(trigger, '_state', state)
 
     try:
@@ -74,32 +75,37 @@ def trigger(settings, conditions):
                     state['fired_targets'].add(key)
                     return True
                 if not crossed and key in state['fired_targets']:
-                    state['fired_targets'].discard(key)  # reset when price moves away
+                    state['fired_targets'].discard(key)
 
             elif condition_type == '52w_extreme':
                 extreme = conditions.get('extreme', 'high')
-                try:
+                # Cache 52w high/low for 1 hour to avoid expensive history fetches
+                cached = state['52w_cache'].get(sym)
+                now = _time.time()
+                if cached and (now - cached['ts']) < 3600:
+                    week52_high, week52_low = cached['high'], cached['low']
+                else:
                     hist = yf.Ticker(sym).history(period='1y')
                     if hist.empty:
                         continue
                     week52_high = hist['High'].max()
                     week52_low = hist['Low'].min()
-                    key_h = f"{sym}:52wh"
-                    key_l = f"{sym}:52wl"
-                    if extreme in ('high', 'either') and price >= week52_high * 0.995:
-                        if key_h not in state['fired_targets']:
-                            state['fired_targets'].add(key_h)
-                            return True
-                    else:
-                        state['fired_targets'].discard(key_h)
-                    if extreme in ('low', 'either') and price <= week52_low * 1.005:
-                        if key_l not in state['fired_targets']:
-                            state['fired_targets'].add(key_l)
-                            return True
-                    else:
-                        state['fired_targets'].discard(key_l)
-                except Exception:
-                    continue
+                    state['52w_cache'][sym] = {'high': week52_high, 'low': week52_low, 'ts': now}
+
+                key_h = f"{sym}:52wh"
+                key_l = f"{sym}:52wl"
+                if extreme in ('high', 'either') and price >= week52_high * 0.995:
+                    if key_h not in state['fired_targets']:
+                        state['fired_targets'].add(key_h)
+                        return True
+                else:
+                    state['fired_targets'].discard(key_h)
+                if extreme in ('low', 'either') and price <= week52_low * 1.005:
+                    if key_l not in state['fired_targets']:
+                        state['fired_targets'].add(key_l)
+                        return True
+                else:
+                    state['fired_targets'].discard(key_l)
 
             elif condition_type == 'market_hours':
                 from datetime import datetime
@@ -123,5 +129,5 @@ def trigger(settings, conditions):
                 return False
 
     except Exception:
-        pass
+        raise
     return False

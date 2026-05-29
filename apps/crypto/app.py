@@ -88,5 +88,5 @@ def trigger(settings, conditions):
                     state['fired_targets'].discard(key)
 
     except Exception:
-        pass
+        raise
     return False

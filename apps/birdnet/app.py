@@ -172,4 +172,4 @@ def trigger(settings, conditions):
             return len(state['recent_times']) >= count
         return False
     except Exception:
-        return False
+        raise

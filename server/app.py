@@ -1534,6 +1534,7 @@ threading.Thread(target=playlist_loop, daemon=True).start()
 
 _trigger_cooldowns = {}  # trigger_id → last_fired timestamp
 _trigger_last_check = {}  # trigger_id → last_checked timestamp
+_trigger_failures = {}  # trigger_id → consecutive failure count
 
 
 def _check_triggers():
@@ -1553,8 +1554,11 @@ def _check_triggers():
         manifest = _plugin_registry.get(app_id, {})
         interval = float(manifest.get('trigger_interval', 60))
         cooldown = float(trig.get('cooldown', manifest.get('trigger_cooldown', 300)))
+        # Exponential backoff on repeated failures (doubles interval up to 10min cap)
+        failures = _trigger_failures.get(trig_id, 0)
+        effective_interval = min(interval * (2 ** failures), 600) if failures else interval
         # Check interval
-        if now - _trigger_last_check.get(trig_id, 0) < interval:
+        if now - _trigger_last_check.get(trig_id, 0) < effective_interval:
             continue
         _trigger_last_check[trig_id] = now
         # Check cooldown
@@ -1568,8 +1572,10 @@ def _check_triggers():
                     plugin_settings[s['key']] = settings.get(key, s.get('default', ''))
             conditions = trig.get('conditions', {})
             fired = trigger_fn(plugin_settings, conditions)
+            _trigger_failures[trig_id] = 0
         except Exception as e:
-            logging.error(f"Trigger {trig_id} ({app_id}) error: {e}")
+            _trigger_failures[trig_id] = failures + 1
+            logging.error(f"Trigger {trig_id} ({app_id}) error (fail #{failures+1}): {e}")
             continue
         if fired:
             _trigger_cooldowns[trig_id] = now

@@ -72,5 +72,5 @@ def trigger(settings, conditions):
                 return True
 
     except Exception:
-        pass
+        raise
     return False

@@ -88,5 +88,5 @@ def trigger(settings, conditions):
                 state['seen_alert_ids'] = set(list(state['seen_alert_ids'])[-100:])
 
     except Exception:
-        pass
+        raise
     return False
