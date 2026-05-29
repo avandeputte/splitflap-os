@@ -2699,10 +2699,28 @@ def apply_update():
         repo_uid = stat.st_uid
         import pwd
         repo_user = pwd.getpwuid(repo_uid).pw_name
+
+        # Ensure git trusts this directory (fixes safe.directory errors)
         subprocess.run(
-            ['sudo', '-u', repo_user, 'git', 'pull', 'origin', 'main'],
-            cwd=repo_dir, timeout=60, check=True
+            ['git', 'config', '--global', '--add', 'safe.directory', os.path.realpath(repo_dir)],
+            timeout=5, capture_output=True
         )
+
+        # Reset any local changes that would block the pull
+        subprocess.run(
+            ['sudo', '-u', repo_user, 'git', 'reset', '--hard', 'HEAD'],
+            cwd=repo_dir, timeout=30, capture_output=True
+        )
+
+        result = subprocess.run(
+            ['sudo', '-u', repo_user, 'git', 'pull', 'origin', 'main'],
+            cwd=repo_dir, timeout=60, capture_output=True, text=True
+        )
+        if result.returncode != 0:
+            error_msg = result.stderr.strip() or result.stdout.strip() or 'git pull failed'
+            logging.error(f"Update git pull failed: {error_msg}")
+            return jsonify(status='error', message=error_msg), 500
+
         _update_cache['checked_at'] = 0  # invalidate cache
 
         req_hash_after = _hash_file(req_path)
