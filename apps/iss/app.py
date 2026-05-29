@@ -23,7 +23,6 @@ def trigger(settings, conditions):
     import pytz
 
     condition_type = conditions.get('condition_type', 'overhead')
-    zip_code = settings.get('zip_code', '02118')
 
     state = getattr(trigger, '_state', None)
     if state is None:
@@ -32,14 +31,20 @@ def trigger(settings, conditions):
 
     try:
         if condition_type in ('overhead', 'visible_pass'):
-            geo = requests.get(
-                f'https://nominatim.openstreetmap.org/search?postalcode={zip_code}&country=US&format=json&limit=1',
-                timeout=5, headers={'User-Agent': 'SplitFlapOS/1.0'}
-            ).json()
-            if not geo:
-                return False
-            user_lat = float(geo[0]['lat'])
-            user_lon = float(geo[0]['lon'])
+            loc_lat = settings.get('location_lat', '')
+            loc_lon = settings.get('location_lon', '')
+            if loc_lat and loc_lon:
+                user_lat, user_lon = float(loc_lat), float(loc_lon)
+            else:
+                zip_code = settings.get('zip_code', '02118')
+                geo = requests.get(
+                    f'https://nominatim.openstreetmap.org/search?q={zip_code}&format=json&limit=1',
+                    timeout=5, headers={'User-Agent': 'SplitFlapOS/1.0'}
+                ).json()
+                if not geo:
+                    return False
+                user_lat = float(geo[0]['lat'])
+                user_lon = float(geo[0]['lon'])
 
             pos = requests.get('http://api.open-notify.org/iss-now.json', timeout=5).json()
             iss_lat = float(pos['iss_position']['latitude'])

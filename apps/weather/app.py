@@ -230,8 +230,36 @@ def fetch(settings, format_lines, get_rows, get_cols):
     polling_seconds = max(30.0, min(86400.0, float(settings.get('polling_rate', 300) or 300)))
     openmeteo_air = None
 
+    # Resolve location: per-app override > global lat/lon > geocode zip_code
+    app_location = settings.get('location', '').strip()
+    loc_lat = settings.get('location_lat', '')
+    loc_lon = settings.get('location_lon', '')
+    loc_name = settings.get('location_name', '')
+    if app_location and ',' in app_location:
+        if '|' in app_location:
+            coords, _city = app_location.split('|', 1)
+            _city = _city.strip().upper()
+        else:
+            coords = app_location
+            _city = 'LOCATION'
+        parts = coords.split(',', 1)
+        _lat, _lon = float(parts[0]), float(parts[1])
+    elif loc_lat and loc_lon:
+        _lat, _lon = float(loc_lat), float(loc_lon)
+        _city = loc_name.split(',')[0].strip().upper() if loc_name else 'LOCATION'
+    else:
+        geo = requests.get(
+            f'https://nominatim.openstreetmap.org/search?q={zip_code}&format=json&limit=1',
+            timeout=5, headers={'User-Agent': 'SplitFlapOS/1.0'}
+        ).json()
+        if geo:
+            _lat, _lon = float(geo[0]['lat']), float(geo[0]['lon'])
+            _city = geo[0].get('display_name', zip_code).split(',')[0].strip().upper()
+        else:
+            _lat, _lon, _city = 42.3496, -71.0783, 'BOSTON'
+
     settings_sig = (
-        api_key, zip_code, weather_provider, temp_unit,
+        api_key, _lat, _lon, weather_provider, temp_unit,
         show_aqi, show_uv, show_pollen, polling_seconds,
     )
     now_ts = time.time()
@@ -260,31 +288,26 @@ def fetch(settings, format_lines, get_rows, get_cols):
     def _fetch_openweather_weather():
         payload = requests.get(
             'https://api.openweathermap.org/data/2.5/weather',
-            params={'zip': f'{zip_code},us', 'appid': api_key, 'units': 'imperial'},
+            params={'lat': _lat, 'lon': _lon, 'appid': api_key, 'units': 'imperial'},
             timeout=10
         ).json()
         return {
-            'city': payload['name'].upper(),
+            'city': payload.get('name', _city).upper(),
             'temp': int(payload['main']['temp']),
             'feels_like': int(payload['main']['feels_like']),
             'hi': int(payload['main']['temp_max']),
             'lo': int(payload['main']['temp_min']),
             'desc': payload['weather'][0]['description'].upper(),
-            'lat': payload['coord']['lat'],
-            'lon': payload['coord']['lon'],
+            'lat': _lat,
+            'lon': _lon,
         }
 
     def _fetch_openmeteo_weather():
-        geo = requests.get(f'https://api.zippopotam.us/us/{zip_code}', timeout=10).json()
-        place = (geo.get('places') or [{}])[0]
-        lat = float(place['latitude'])
-        lon = float(place['longitude'])
-        city = str(place.get('place name', zip_code)).upper()
         weather = requests.get(
             'https://api.open-meteo.com/v1/forecast',
             params={
-                'latitude': lat,
-                'longitude': lon,
+                'latitude': _lat,
+                'longitude': _lon,
                 'current': 'temperature_2m,apparent_temperature,weather_code,uv_index',
                 'daily': 'temperature_2m_max,temperature_2m_min',
                 'temperature_unit': 'fahrenheit',
@@ -298,14 +321,14 @@ def fetch(settings, format_lines, get_rows, get_cols):
         hi_values = daily.get('temperature_2m_max') or [current.get('temperature_2m')]
         lo_values = daily.get('temperature_2m_min') or [current.get('temperature_2m')]
         return {
-            'city': city,
+            'city': _city,
             'temp': int(round(current.get('temperature_2m', 0))),
             'feels_like': int(round(current.get('apparent_temperature', current.get('temperature_2m', 0)))),
             'hi': int(round(hi_values[0] if hi_values else 0)),
             'lo': int(round(lo_values[0] if lo_values else 0)),
             'desc': OPENMETEO_WEATHER_CODES.get(current.get('weather_code'), 'CURRENT CONDITIONS'),
-            'lat': lat,
-            'lon': lon,
+            'lat': _lat,
+            'lon': _lon,
             'uv': current.get('uv_index'),
         }
 
@@ -314,7 +337,7 @@ def fetch(settings, format_lines, get_rows, get_cols):
             'https://api.weatherapi.com/v1/forecast.json',
             params={
                 'key': api_key,
-                'q': zip_code,
+                'q': f'{_lat},{_lon}',
                 'days': 1,
                 'aqi': 'yes',
                 'pollen': 'yes',
@@ -327,7 +350,7 @@ def fetch(settings, format_lines, get_rows, get_cols):
         day = forecast.get('day', {})
         pollen = forecast.get('pollen') or current.get('pollen') or day.get('pollen') or {}
         return {
-            'city': str(location.get('name', zip_code)).upper(),
+            'city': str(location.get('name', _city)).upper(),
             'temp': int(round(current.get('temp_f', 0))),
             'feels_like': int(round(current.get('feelslike_f', current.get('temp_f', 0)))),
             'hi': int(round(day.get('maxtemp_f', current.get('temp_f', 0)))),
@@ -341,12 +364,7 @@ def fetch(settings, format_lines, get_rows, get_cols):
         }
 
     def _fetch_qweather_weather():
-        geo = requests.get(f'https://api.zippopotam.us/us/{zip_code}', timeout=10).json()
-        place = (geo.get('places') or [{}])[0]
-        lat = float(place['latitude'])
-        lon = float(place['longitude'])
-        city = str(place.get('place name', zip_code)).upper()
-        location = f'{lon:.2f},{lat:.2f}'
+        location = f'{_lon:.2f},{_lat:.2f}'
         headers = {'Authorization': f'Bearer {api_key}'}
 
         now_r = requests.get(
@@ -366,14 +384,14 @@ def fetch(settings, format_lines, get_rows, get_cols):
         first_day = (daily_r.get('daily') or [{}])[0]
 
         return {
-            'city': city,
+            'city': _city,
             'temp': _to_int(now.get('temp')),
             'feels_like': _to_int(now.get('feelsLike'), _to_int(now.get('temp'))),
             'hi': _to_int(first_day.get('tempMax'), _to_int(now.get('temp'))),
             'lo': _to_int(first_day.get('tempMin'), _to_int(now.get('temp'))),
             'desc': str(now.get('text', 'CURRENT CONDITIONS')).upper(),
-            'lat': lat,
-            'lon': lon,
+            'lat': _lat,
+            'lon': _lon,
         }
 
     def _fetch_openweather_aqi(lat, lon):
@@ -458,7 +476,7 @@ def fetch(settings, format_lines, get_rows, get_cols):
         else:
             pages = [
                 format_lines(city, f'{temp} {feels}', desc, f'{hi} {lo}'),
-                format_lines(city, f'{hi} {lo}', desc, f'ZIP {zip_code}', f'{provider_word} {weather_provider.upper()}'),
+                format_lines(city, f'{hi} {lo}', desc, f'{provider_word} {weather_provider.upper()}'),
             ]
 
         if show_aqi:
@@ -604,7 +622,6 @@ def trigger(settings, conditions):
     threshold_f = float(conditions.get('temp_threshold', 90))
     uv_threshold = float(conditions.get('uv_threshold', 7))
     wind_threshold = float(conditions.get('wind_threshold', 25))
-    zip_code = settings.get('zip_code', '02118')
 
     SEVERE_CODES = {65, 67, 75, 77, 82, 86, 95, 96, 99}
     RAIN_CODES = {51, 53, 55, 61, 63, 65, 66, 67, 80, 81, 82}
@@ -612,22 +629,23 @@ def trigger(settings, conditions):
 
     state = getattr(trigger, '_state', None)
     if state is None:
-        state = {'last_code': None, 'last_temp': None, 'geo_cache': {}}
+        state = {'last_code': None, 'last_temp': None}
         setattr(trigger, '_state', state)
 
     try:
-        # Cache geocoding results per zip code
-        if zip_code in state['geo_cache']:
-            lat, lon = state['geo_cache'][zip_code]
+        loc_lat = settings.get('location_lat', '')
+        loc_lon = settings.get('location_lon', '')
+        if loc_lat and loc_lon:
+            lat, lon = float(loc_lat), float(loc_lon)
         else:
+            zip_code = settings.get('zip_code', '02118')
             geo = requests.get(
-                f'https://nominatim.openstreetmap.org/search?postalcode={zip_code}&country=US&format=json&limit=1',
+                f'https://nominatim.openstreetmap.org/search?q={zip_code}&format=json&limit=1',
                 timeout=5, headers={'User-Agent': 'SplitFlapOS/1.0'}
             ).json()
             if not geo:
                 return False
-            lat, lon = geo[0]['lat'], geo[0]['lon']
-            state['geo_cache'] = {zip_code: (lat, lon)}
+            lat, lon = float(geo[0]['lat']), float(geo[0]['lon'])
 
         data = requests.get(
             f'https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}'

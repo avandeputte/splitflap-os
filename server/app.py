@@ -78,6 +78,9 @@ def load_settings():
         "calibrations":  {str(i): 4096 for i in range(45)},
         "tuned_chars":   {str(i): {} for i in range(45)},
         "zip_code":      "02118",
+        "location_lat":  "",
+        "location_lon":  "",
+        "location_name": "",
         "timezone":      sys_tz,
         "weather_api_key": "",
         "mbta_stop":     "",
@@ -2236,8 +2239,53 @@ def sports_follow():
     return jsonify(status='success')
 
 # ============================================================
-#  SEARCH ENDPOINTS (timezone, stocks, crypto)
+#  SEARCH ENDPOINTS (timezone, stocks, crypto, location)
 # ============================================================
+
+@app.route('/location_search')
+def location_search_route():
+    """Search for locations globally via Nominatim."""
+    query = request.args.get('q', '').strip()
+    if len(query) < 2:
+        return jsonify(results=[])
+    try:
+        url = f'https://nominatim.openstreetmap.org/search?q={query}&format=json&limit=6&addressdetails=1'
+        data = requests.get(url, timeout=5, headers={'User-Agent': 'SplitFlapOS/1.0'}).json()
+        results = []
+        for r in data:
+            name = r.get('display_name', query)
+            addr = r.get('address', {})
+            short_name = (addr.get('city') or addr.get('town') or addr.get('village')
+                          or addr.get('municipality') or name.split(',')[0].strip())
+            results.append({
+                'lat': r['lat'],
+                'lon': r['lon'],
+                'name': name,
+                'short_name': short_name,
+                'value': f"{r['lat']},{r['lon']}|{query}",
+                'label': name,
+            })
+        return jsonify(results=results)
+    except Exception as e:
+        logging.error(f"Location search error: {e}")
+        return jsonify(results=[], error=str(e)), 502
+
+@app.route('/location_timezone')
+def location_timezone_route():
+    """Get timezone for a lat/lon via Open-Meteo."""
+    lat = request.args.get('lat', '')
+    lon = request.args.get('lon', '')
+    if not lat or not lon:
+        return jsonify(timezone='')
+    try:
+        data = requests.get(
+            'https://api.open-meteo.com/v1/forecast',
+            params={'latitude': lat, 'longitude': lon, 'forecast_days': 1, 'current': 'temperature_2m'},
+            timeout=5
+        ).json()
+        return jsonify(timezone=data.get('timezone', ''))
+    except Exception:
+        return jsonify(timezone='')
 
 @app.route('/timezones')
 def timezones_route():

@@ -12,10 +12,15 @@ def fetch(settings, format_lines, get_rows, get_cols):
     try:
         import requests
         api_key = settings.get('weather_api_key', '').strip()
-        zip_code = settings.get('zip_code', '02118').strip()
         if not api_key:
             return [time_page, format_lines("NO WEATHER DATA", "", "CHECK API KEY")]
-        url = f"http://api.openweathermap.org/data/2.5/weather?zip={zip_code},us&appid={api_key}&units=imperial"
+        loc_lat = settings.get('location_lat', '')
+        loc_lon = settings.get('location_lon', '')
+        if loc_lat and loc_lon:
+            url = f"http://api.openweathermap.org/data/2.5/weather?lat={loc_lat}&lon={loc_lon}&appid={api_key}&units=imperial"
+        else:
+            zip_code = settings.get('zip_code', '02118').strip()
+            url = f"http://api.openweathermap.org/data/2.5/weather?zip={zip_code},us&appid={api_key}&units=imperial"
         res = requests.get(url, timeout=5).json()
         c = get_cols()
         city = res['name'].upper()

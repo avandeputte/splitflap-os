@@ -1821,6 +1821,78 @@ function createTimezonePicker(container, currentValue){
   });
 }
 
+function createLocationPicker(container, currentName, currentLat, currentLon){
+  const hiddenLat = document.createElement('input');
+  hiddenLat.type='hidden'; hiddenLat.id='globalLocationLat'; hiddenLat.value=currentLat||'';
+  container.appendChild(hiddenLat);
+
+  const hiddenLon = document.createElement('input');
+  hiddenLon.type='hidden'; hiddenLon.id='globalLocationLon'; hiddenLon.value=currentLon||'';
+  container.appendChild(hiddenLon);
+
+  const hiddenName = document.createElement('input');
+  hiddenName.type='hidden'; hiddenName.id='globalLocationName'; hiddenName.value=currentName||'';
+  container.appendChild(hiddenName);
+
+  const input = document.createElement('input');
+  input.type='text'; input.className='line-input';
+  input.style.cssText='font-size:.9rem;margin:0;text-transform:none';
+  input.value=currentName||'';
+  input.placeholder='Search city, address, or postal code…';
+  container.appendChild(input);
+
+  const resultsEl = document.createElement('div');
+  resultsEl.className='chip-picker-results';
+  container.appendChild(resultsEl);
+
+  let debounce=null;
+  input.oninput=()=>{
+    clearTimeout(debounce);
+    debounce=setTimeout(()=>doSearch(input.value.trim()),400);
+  };
+
+  async function doSearch(q){
+    if(q.length < 2){ resultsEl.innerHTML=''; return; }
+    try{
+      const res = await fetch(`/location_search?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      resultsEl.innerHTML='';
+      (data.results||[]).forEach(r=>{
+        const el = document.createElement('div');
+        el.className='chip-picker-result';
+        el.textContent=r.name;
+        el.onclick=()=>{
+          hiddenLat.value=r.lat;
+          hiddenLon.value=r.lon;
+          const displayName = q.trim().length < 30 ? q.trim() : (r.short_name || r.name.split(',')[0].trim());
+          hiddenName.value=displayName;
+          input.value=displayName;
+          resultsEl.innerHTML='';
+          setSettingsDirty(true);
+          // Auto-set timezone from location
+          fetch(`/location_timezone?lat=${r.lat}&lon=${r.lon}`)
+            .then(res=>res.json()).then(data=>{
+              if(data.timezone){
+                const tzHidden = document.getElementById('globalTzValue');
+                const tzEl = document.getElementById('globalTzPicker');
+                if(tzHidden) tzHidden.value = data.timezone;
+                if(tzEl){
+                  const tzInput = tzEl.querySelector('input[type="text"]');
+                  if(tzInput) tzInput.value = data.timezone;
+                }
+              }
+            }).catch(()=>{});
+        };
+        resultsEl.appendChild(el);
+      });
+    }catch(e){}
+  }
+
+  document.addEventListener('click',(e)=>{
+    if(!container.contains(e.target)) resultsEl.innerHTML='';
+  });
+}
+
 // ============================================================
 //  SINGLE SEARCH PICKER (for maxItems:1 fields in app settings)
 // ============================================================
@@ -1982,6 +2054,12 @@ function loadSettingsData(){
     if(tzEl){
       tzEl.innerHTML='';
       createTimezonePicker(tzEl, data.timezone||'');
+    }
+    // Global location picker
+    const locEl = document.getElementById('globalLocationPicker');
+    if(locEl){
+      locEl.innerHTML='';
+      createLocationPicker(locEl, data.location_name||'', data.location_lat||'', data.location_lon||'');
     }
     renderModuleGrid();
     selectModule(selectedModule);
@@ -2204,11 +2282,17 @@ function saveGlobal(){
   const globalDelay = parseInt(document.getElementById('globalLoopDelay').value) || 5;
   const tzEl = document.getElementById('globalTzValue');
   const tz = tzEl ? tzEl.value : '';
+  const locLat = document.getElementById('globalLocationLat')?.value || '';
+  const locLon = document.getElementById('globalLocationLon')?.value || '';
+  const locName = document.getElementById('globalLocationName')?.value || '';
   fetch('/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
     action:'save_global',
     sim_rows:rows, sim_cols:cols,
     global_loop_delay: globalDelay,
     timezone: tz,
+    location_lat: locLat,
+    location_lon: locLon,
+    location_name: locName,
     mqtt_enabled: document.getElementById('mqttEnabled').checked,
     mqtt_broker: document.getElementById('mqttBroker').value,
     mqtt_port: parseInt(document.getElementById('mqttPort').value) || 1883,
