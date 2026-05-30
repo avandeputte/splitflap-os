@@ -1510,10 +1510,13 @@ def playlist_loop():
                 max_dist = _send_with_effect(page_text, anim_style or page_style, page_speed, is_anim, app_id=reg_key)
                 last_sent_page = page_text
 
-            rotation_time = max_dist * (4.0 / 64.0)
-            for _ in range(int(rotation_time * 10)):
-                if stop_event.is_set(): break
-                time.sleep(0.1)
+            # Skip rotation wait if manifest opts out (e.g. continuous random spin)
+            skip_rot = reg_key in _plugin_registry and _plugin_registry[reg_key].get('skip_rotation_wait')
+            if not skip_rot:
+                rotation_time = max_dist * (4.0 / 64.0)
+                for _ in range(int(rotation_time * 10)):
+                    if stop_event.is_set(): break
+                    time.sleep(0.1)
 
             for _ in range(int(page_delay * 10)):
                 if stop_event.is_set(): break
