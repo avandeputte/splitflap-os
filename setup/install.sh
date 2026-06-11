@@ -1,15 +1,26 @@
 #!/bin/bash
 # install.sh — Set up Splitflap OS on a Raspberry Pi (Bookworm / Trixie)
 # Run as root from the repo directory: sudo bash setup/install.sh
+# Use --skip-network to skip hotspot/NetworkManager setup
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_DIR="$(dirname "$SCRIPT_DIR")"
 VENV_DIR="$REPO_DIR/venv"
+SKIP_NETWORK=false
+
+for arg in "$@"; do
+    case "$arg" in
+        --skip-network) SKIP_NETWORK=true ;;
+    esac
+done
 
 echo "=== Splitflap OS Installer ==="
 echo "  Installing from: $REPO_DIR"
+if $SKIP_NETWORK; then
+    echo "  Network/hotspot: SKIPPED (--skip-network)"
+fi
 echo ""
 
 # Check root
@@ -21,13 +32,21 @@ fi
 # Install system packages
 echo "[1/4] Installing system packages..."
 apt-get update -qq
-apt-get install -y python3-pip python3-venv network-manager libopenblas0
+if $SKIP_NETWORK; then
+    apt-get install -y python3-pip python3-venv libopenblas0
+else
+    apt-get install -y python3-pip python3-venv network-manager libopenblas0
+fi
 
 # Ensure NetworkManager manages WiFi
-echo "[2/4] Configuring NetworkManager..."
-if ! systemctl is-active --quiet NetworkManager; then
-    systemctl enable NetworkManager
-    systemctl start NetworkManager
+if $SKIP_NETWORK; then
+    echo "[2/4] Skipping NetworkManager (--skip-network)..."
+else
+    echo "[2/4] Configuring NetworkManager..."
+    if ! systemctl is-active --quiet NetworkManager; then
+        systemctl enable NetworkManager
+        systemctl start NetworkManager
+    fi
 fi
 
 # Create venv and install Python dependencies
@@ -67,12 +86,16 @@ install_service() {
     mv "$tmp" "$dest"
 }
 
-install_service "$REPO_DIR/setup/splitflap-network.service" /etc/systemd/system/splitflap-network.service
+if ! $SKIP_NETWORK; then
+    install_service "$REPO_DIR/setup/splitflap-network.service" /etc/systemd/system/splitflap-network.service
+fi
 install_service "$REPO_DIR/setup/splitflap.service" /etc/systemd/system/splitflap.service
 systemctl daemon-reload
-systemctl enable splitflap-network.service
+if ! $SKIP_NETWORK; then
+    systemctl enable splitflap-network.service
+    systemctl restart splitflap-network.service
+fi
 systemctl enable splitflap.service
-systemctl restart splitflap-network.service
 systemctl restart splitflap.service
 
 # Create settings.json if it doesn't exist
@@ -85,15 +108,19 @@ echo "=== Splitflap OS installed and running ==="
 echo ""
 echo "  Access UI:     http://$(hostname -I | awk '{print $1}')"
 echo "  View logs:     journalctl -u splitflap -f"
-echo "  Network logs:  journalctl -u splitflap-network -f"
+if ! $SKIP_NETWORK; then
+    echo "  Network logs:  journalctl -u splitflap-network -f"
+fi
 echo ""
 echo "  To update:     cd $REPO_DIR && git pull && sudo bash setup/install.sh"
 echo ""
-echo "  WiFi hotspot fallback is enabled."
-echo "  If no WiFi is found on boot, the Pi will create:"
-echo "    SSID: SplitflapOS"
-echo "    Password: splitflap"
-echo ""
-echo "  To change hotspot credentials, edit:"
-echo "    /etc/systemd/system/splitflap-network.service"
-echo ""
+if ! $SKIP_NETWORK; then
+    echo "  WiFi hotspot fallback is enabled."
+    echo "  If no WiFi is found on boot, the Pi will create:"
+    echo "    SSID: SplitflapOS"
+    echo "    Password: splitflap"
+    echo ""
+    echo "  To change hotspot credentials, edit:"
+    echo "    /etc/systemd/system/splitflap-network.service"
+    echo ""
+fi
