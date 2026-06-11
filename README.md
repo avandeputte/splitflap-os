@@ -13,6 +13,7 @@ Built on [Adam G Makes' Split-Flap Display](https://github.com/adamgmakes/SplitF
 - **Live preview** — animated flap simulation in the browser
 - **Calibration tools** — hardware inspector, auto fine-tune, teach mode
 - **MQTT** — Home Assistant integration with auto-discovery
+- **Configurable serial port** — auto-detect available ports or enter a custom path; supports env var, settings UI, and Docker deployments
 - **WiFi hotspot fallback** — Pi creates its own network when no WiFi is found, so you can always access the UI
 - **Offline resilience** — internet-dependent apps degrade gracefully, offline apps keep running
 - **Plugin architecture** — community apps via manifest + fetch pattern

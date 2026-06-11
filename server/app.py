@@ -1,4 +1,5 @@
 import serial
+import serial.tools.list_ports
 import time
 import threading
 import json
@@ -20,7 +21,7 @@ except ImportError:
     mqtt = None
     logging.warning("paho-mqtt not installed — MQTT integration disabled")
 
-SERIAL_PORT = '/dev/ttyUSB0'
+SERIAL_PORT_DEFAULT = '/dev/ttyUSB0'
 BAUD_RATE = 9600
 CONFIG_PATH = os.environ.get(
     "SPLITFLAP_CONFIG",
@@ -28,6 +29,21 @@ CONFIG_PATH = os.environ.get(
 )
 APPS_PATH = os.path.join(os.path.dirname(__file__), '..', 'apps')
 VERSION_FILE = os.path.join(os.path.dirname(__file__), '..', 'VERSION')
+
+def _get_serial_port():
+    """Resolve serial port: env var > settings.json > default."""
+    env_port = os.environ.get("SPLITFLAP_SERIAL_PORT")
+    if env_port:
+        return env_port
+    if os.path.exists(CONFIG_PATH):
+        try:
+            with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                if data.get("serial_port"):
+                    return data["serial_port"]
+        except Exception:
+            pass
+    return SERIAL_PORT_DEFAULT
 
 def _read_version():
     try:
@@ -41,11 +57,18 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
 serial_lock = threading.Lock()
 
-try:
-    ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=0.5)
-except Exception as e:
-    ser = None
-    logging.error(f"Serial failed. Simulation Mode. Reason: {e}")
+def _open_serial(port=None):
+    """Open a serial connection. Returns (Serial, port) or (None, port)."""
+    port = port or _get_serial_port()
+    try:
+        s = serial.Serial(port, BAUD_RATE, timeout=0.5)
+        logging.info(f"Serial connected: {port}")
+        return s, port
+    except Exception as e:
+        logging.error(f"Serial failed on {port}. Simulation Mode. Reason: {e}")
+        return None, port
+
+ser, SERIAL_PORT = _open_serial()
 
 # --- GLOBAL STATE ---
 FLAP_CHARS = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$&()-+=;q:%'.,/?*roygbpw"
@@ -132,6 +155,7 @@ def load_settings():
         "quiet_hours_start": "22:00",
         "quiet_hours_end": "07:00",
         "quiet_hours_days": ["sun","mon","tue","wed","thu","fri","sat"],
+        "serial_port": "",
         "triggers_enabled": True,
         "triggers": [],
         "installed_apps": [
@@ -529,6 +553,42 @@ def sync_hardware_data(mod_id):
                     logging.error(f"Parse error: {e}")
             time.sleep(0.05)
     return False
+
+
+@app.route('/serial_ports', methods=['GET'])
+def list_serial_ports():
+    """List available serial ports on the system."""
+    ports = []
+    for p in serial.tools.list_ports.comports():
+        ports.append({
+            "device": p.device,
+            "description": p.description,
+            "hwid": p.hwid
+        })
+    return jsonify(ports=ports, current=SERIAL_PORT)
+
+
+@app.route('/serial_port', methods=['POST'])
+def set_serial_port():
+    """Change the active serial port and persist to settings."""
+    global ser, sim_mode, SERIAL_PORT
+    data = request.json
+    new_port = data.get('port', '').strip()
+    if not new_port:
+        return jsonify(status="error", message="No port specified"), 400
+
+    with serial_lock:
+        if ser:
+            try:
+                ser.close()
+            except Exception:
+                pass
+        ser, SERIAL_PORT = _open_serial(new_port)
+        sim_mode = not ser
+
+    settings['serial_port'] = new_port
+    save_settings(settings)
+    return jsonify(status="success", port=SERIAL_PORT, sim_mode=sim_mode)
 
 
 # ============================================================

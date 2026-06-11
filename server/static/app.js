@@ -2065,6 +2065,7 @@ function loadSettingsData(){
     renderModuleGrid();
     selectModule(selectedModule);
     setSettingsDirty(false);
+    refreshSerialPorts();
   });
 }
 
@@ -2078,6 +2079,70 @@ function renderModuleGrid(){
     cell.onclick=()=>selectModule(i);
     grid.appendChild(cell);
   }
+}
+
+// --- Serial Port UI ---
+function refreshSerialPorts(){
+  fetch('/serial_ports').then(r=>r.json()).then(data=>{
+    const sel = document.getElementById('serialPortSelect');
+    sel.innerHTML='';
+    (data.ports||[]).forEach(p=>{
+      const opt = document.createElement('option');
+      opt.value = p.device;
+      opt.textContent = p.device + (p.description && p.description!=='n/a' ? ' — '+p.description : '');
+      sel.appendChild(opt);
+    });
+    const manualOpt = document.createElement('option');
+    manualOpt.value = '__manual__';
+    manualOpt.textContent = 'Enter manually...';
+    sel.appendChild(manualOpt);
+    // Select current port
+    const current = data.current || '';
+    const match = Array.from(sel.options).find(o=>o.value===current);
+    if(match){
+      sel.value = current;
+      document.getElementById('serialPortManualWrap').style.display='none';
+    } else if(current){
+      sel.value = '__manual__';
+      document.getElementById('serialPortManualWrap').style.display='block';
+      document.getElementById('serialPortManual').value = current;
+    }
+    if(typeof lucide!=='undefined') lucide.createIcons();
+  });
+}
+
+function onSerialPortSelect(val){
+  const wrap = document.getElementById('serialPortManualWrap');
+  if(val==='__manual__'){
+    wrap.style.display='block';
+    document.getElementById('serialPortManual').focus();
+  } else {
+    wrap.style.display='none';
+  }
+}
+
+function applySerialPort(){
+  const sel = document.getElementById('serialPortSelect').value;
+  const port = sel==='__manual__' ? document.getElementById('serialPortManual').value.trim() : sel;
+  if(!port){ showToast('Enter a serial port path','error'); return; }
+  const status = document.getElementById('serialPortStatus');
+  status.textContent = 'Connecting...';
+  status.style.color = '#888';
+  fetch('/serial_port',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({port})})
+    .then(r=>r.json()).then(data=>{
+      if(data.status==='success'){
+        status.textContent = data.sim_mode ? 'Set (simulation — could not open)' : 'Connected';
+        status.style.color = data.sim_mode ? '#f90' : '#0f0';
+        showToast(data.sim_mode ? 'Port saved but could not open — simulation mode' : 'Serial port connected');
+      } else {
+        status.textContent = data.message||'Error';
+        status.style.color = '#f44';
+        showToast(data.message||'Error setting port','error');
+      }
+    }).catch(()=>{
+      status.textContent = 'Request failed';
+      status.style.color = '#f44';
+    });
 }
 
 function selectModule(id){
