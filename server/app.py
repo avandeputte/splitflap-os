@@ -21,6 +21,13 @@ except ImportError:
     mqtt = None
     logging.warning("paho-mqtt not installed — MQTT integration disabled")
 
+try:
+    from gateway_transport import GatewayTransport, GatewayConnectionError
+except ImportError:
+    GatewayTransport = None
+    class GatewayConnectionError(Exception):
+        pass
+
 SERIAL_PORT_DEFAULT = '/dev/ttyUSB0'
 BAUD_RATE = 9600
 CONFIG_PATH = os.environ.get(
@@ -30,20 +37,61 @@ CONFIG_PATH = os.environ.get(
 APPS_PATH = os.path.join(os.path.dirname(__file__), '..', 'apps')
 VERSION_FILE = os.path.join(os.path.dirname(__file__), '..', 'VERSION')
 
-def _get_serial_port():
-    """Resolve serial port: env var > settings.json > default."""
-    env_port = os.environ.get("SPLITFLAP_SERIAL_PORT")
-    if env_port:
-        return env_port
+def _read_config_file():
+    """Read the on-disk settings.json (best-effort) before load_settings runs."""
     if os.path.exists(CONFIG_PATH):
         try:
             with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                if data.get("serial_port"):
-                    return data["serial_port"]
+                return json.load(f)
         except Exception:
             pass
+    return {}
+
+def _get_serial_port(data=None):
+    """Resolve serial port: env var > settings.json > default.
+
+    Pass an already-loaded settings dict as ``data`` to avoid re-reading
+    settings.json (see _open_connection).
+    """
+    env_port = os.environ.get("SPLITFLAP_SERIAL_PORT")
+    if env_port:
+        return env_port
+    if data is None:
+        data = _read_config_file()
+    if data.get("serial_port"):
+        return data["serial_port"]
     return SERIAL_PORT_DEFAULT
+
+def _get_connection_type(data=None):
+    """Resolve the active connection type: env var > settings.json > 'serial'.
+
+    Returns either 'serial' (local USB/serial port) or 'gateway' (MQTT
+    SplitFlap Gateway). Pass an already-loaded settings dict as ``data`` to
+    avoid re-reading settings.json.
+    """
+    env_type = os.environ.get("SPLITFLAP_CONNECTION_TYPE")
+    if env_type:
+        return env_type.strip().lower()
+    if data is None:
+        data = _read_config_file()
+    ct = data.get("connection_type", "serial")
+    return (ct or "serial").strip().lower()
+
+def _get_gateway_config(data=None):
+    """Pull the gateway MQTT settings from env/settings.json.
+
+    Pass an already-loaded settings dict as ``data`` to avoid re-reading
+    settings.json.
+    """
+    if data is None:
+        data = _read_config_file()
+    return {
+        "broker":   os.environ.get("SPLITFLAP_GATEWAY_BROKER",   data.get("gateway_broker", "")),
+        "port":     int(os.environ.get("SPLITFLAP_GATEWAY_PORT", data.get("gateway_port", 1883)) or 1883),
+        "prefix":   os.environ.get("SPLITFLAP_GATEWAY_PREFIX",   data.get("gateway_prefix", "splitflap")),
+        "user":     os.environ.get("SPLITFLAP_GATEWAY_USER",     data.get("gateway_user", "")),
+        "password": os.environ.get("SPLITFLAP_GATEWAY_PASSWORD", data.get("gateway_password", "")),
+    }
 
 def _read_version():
     try:
@@ -68,7 +116,48 @@ def _open_serial(port=None):
         logging.error(f"Serial failed on {port}. Simulation Mode. Reason: {e}")
         return None, port
 
-ser, SERIAL_PORT = _open_serial()
+def _open_gateway(cfg=None):
+    """Open an MQTT gateway connection. Returns (GatewayTransport, label) or (None, label)."""
+    cfg = cfg or _get_gateway_config()
+    label = f"gateway:{cfg.get('broker','')}:{cfg.get('port',1883)}"
+    if GatewayTransport is None:
+        logging.error("Gateway selected but paho-mqtt/gateway_transport unavailable. Simulation Mode.")
+        return None, label
+    if not cfg.get("broker"):
+        logging.error("Gateway selected but no broker configured. Simulation Mode.")
+        return None, label
+    try:
+        t = GatewayTransport(
+            broker=cfg["broker"],
+            port=cfg.get("port", 1883),
+            prefix=cfg.get("prefix", "splitflap"),
+            username=cfg.get("user", ""),
+            password=cfg.get("password", ""),
+        )
+        logging.info(f"Gateway connected: {label} prefix={cfg.get('prefix','splitflap')}")
+        return t, label
+    except GatewayConnectionError as e:
+        logging.error(f"Gateway failed ({label}). Simulation Mode. Reason: {e}")
+        return None, label
+    except Exception as e:
+        logging.error(f"Gateway error ({label}). Simulation Mode. Reason: {e}")
+        return None, label
+
+def _open_connection():
+    """Open the active connection based on the configured connection type.
+
+    Returns (transport_or_None, descriptor_string). The transport exposes a
+    pyserial-compatible surface in both modes, so all downstream code is
+    agnostic to which one is active.
+    """
+    # Read settings.json once and thread it through the resolvers below so
+    # startup doesn't re-open the file for each setting it needs.
+    data = _read_config_file()
+    if _get_connection_type(data) == "gateway":
+        return _open_gateway(_get_gateway_config(data))
+    return _open_serial(_get_serial_port(data))
+
+ser, SERIAL_PORT = _open_connection()
 
 # --- GLOBAL STATE ---
 FLAP_CHARS = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$&()-+=;q:%'.,/?*roygbpw"
@@ -156,6 +245,12 @@ def load_settings():
         "quiet_hours_end": "07:00",
         "quiet_hours_days": ["sun","mon","tue","wed","thu","fri","sat"],
         "serial_port": "",
+        "connection_type": "serial",
+        "gateway_broker":   "",
+        "gateway_port":     1883,
+        "gateway_prefix":   "splitflap",
+        "gateway_user":     "",
+        "gateway_password": "",
         "triggers_enabled": True,
         "triggers": [],
         "installed_apps": [
@@ -570,7 +665,11 @@ def list_serial_ports():
 
 @app.route('/serial_port', methods=['POST'])
 def set_serial_port():
-    """Change the active serial port and persist to settings."""
+    """Change the active serial port and persist to settings.
+
+    Applying a serial port also switches the active connection type back to
+    'serial' (in case the gateway was previously selected).
+    """
     global ser, sim_mode, SERIAL_PORT
     data = request.json
     new_port = data.get('port', '').strip()
@@ -587,8 +686,112 @@ def set_serial_port():
         sim_mode = not ser
 
     settings['serial_port'] = new_port
+    settings['connection_type'] = 'serial'
     save_settings(settings)
     return jsonify(status="success", port=SERIAL_PORT, sim_mode=sim_mode)
+
+
+@app.route('/connection', methods=['GET', 'POST'])
+def connection_config():
+    """Get or set the active hardware connection (serial vs MQTT gateway).
+
+    POST body (gateway):
+        {"type":"gateway","broker":"...","port":1883,"prefix":"splitflap",
+         "user":"","password":""}
+    POST body (serial):
+        {"type":"serial","port":"/dev/ttyUSB0"}   # port optional
+    """
+    global ser, sim_mode, SERIAL_PORT
+    if request.method == 'GET':
+        return jsonify(
+            type=settings.get('connection_type', 'serial'),
+            serial_port=settings.get('serial_port', ''),
+            gateway_broker=settings.get('gateway_broker', ''),
+            gateway_port=settings.get('gateway_port', 1883),
+            gateway_prefix=settings.get('gateway_prefix', 'splitflap'),
+            gateway_user=settings.get('gateway_user', ''),
+            # Password intentionally not echoed back in full for safety;
+            # report whether one is set instead.
+            gateway_password_set=bool(settings.get('gateway_password', '')),
+            sim_mode=sim_mode,
+            connected=ser is not None,
+            descriptor=SERIAL_PORT,
+        )
+
+    data = request.json or {}
+    conn_type = (data.get('type') or 'serial').strip().lower()
+
+    if conn_type not in ('serial', 'gateway'):
+        return jsonify(
+            status="error",
+            message=f"Unknown connection type '{conn_type}' "
+                    "(expected 'serial' or 'gateway')",
+        ), 400
+
+    if conn_type == 'gateway':
+        broker = (data.get('broker') or '').strip()
+        if not broker:
+            return jsonify(status="error", message="Broker address is required"), 400
+        prefix = (data.get('prefix') or 'splitflap').strip() or 'splitflap'
+        try:
+            gw_port = int(data.get('port', 1883) or 1883)
+        except (TypeError, ValueError):
+            return jsonify(status="error", message="Invalid port"), 400
+        user = (data.get('user') or '').strip()
+        # Preserve the existing password if the field is left blank on resubmit.
+        password = data.get('password', None)
+        if password is None or password == '':
+            password = settings.get('gateway_password', '')
+
+        # Persist before (re)connecting so _open_gateway picks up fresh values.
+        settings['connection_type'] = 'gateway'
+        settings['gateway_broker'] = broker
+        settings['gateway_port'] = gw_port
+        settings['gateway_prefix'] = prefix
+        settings['gateway_user'] = user
+        settings['gateway_password'] = password
+        save_settings(settings)
+
+        with serial_lock:
+            if ser:
+                try:
+                    ser.close()
+                except Exception:
+                    pass
+            ser, SERIAL_PORT = _open_gateway({
+                "broker": broker, "port": gw_port, "prefix": prefix,
+                "user": user, "password": password,
+            })
+            sim_mode = not ser
+        return jsonify(
+            status="success",
+            type="gateway",
+            descriptor=SERIAL_PORT,
+            sim_mode=sim_mode,
+            message="Gateway connected" if not sim_mode
+                    else "Saved, but could not reach gateway — simulation mode",
+        )
+
+    # Fall back to serial.
+    settings['connection_type'] = 'serial'
+    save_settings(settings)
+    with serial_lock:
+        if ser:
+            try:
+                ser.close()
+            except Exception:
+                pass
+        port = (data.get('port') or settings.get('serial_port') or '').strip() or None
+        ser, SERIAL_PORT = _open_serial(port)
+        sim_mode = not ser
+    return jsonify(
+        status="success",
+        type="serial",
+        descriptor=SERIAL_PORT,
+        sim_mode=sim_mode,
+        message="Serial connected" if not sim_mode
+                else "Saved, but could not open serial — simulation mode",
+    )
 
 
 # ============================================================
