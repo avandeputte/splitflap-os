@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Splitflap OS — Design System</title>
+  <link rel="stylesheet" href="tokens.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="utilities.css">
+  <link rel="stylesheet" href="style-guide.css">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body class="sf-grain sg-body">
+
+<nav class="sg-nav">
+  <a href="#" class="sg-nav__brand">Splitflap OS</a>
+  <a href="#colors">Colors</a>
+  <a href="#typography">Typography</a>
+  <a href="#spacing">Spacing</a>
+  <a href="#shadows">Shadows</a>
+  <a href="#motion">Motion</a>
+  <a href="#buttons">Buttons</a>
+  <a href="#inputs">Inputs</a>
+  <a href="#toggles">Toggles</a>
+  <a href="#cards">Cards</a>
+  <a href="#modals">Modals</a>
+  <a href="#flaps">Flaps</a>
+  <a href="#notices">Notices</a>
+  <a href="#patterns">Patterns</a>
+</nav>
+
+<div class="sg-wrapper">
+
+  <!-- HEADER -->
+  <header class="sg-header">
+    <h1>Design System</h1>
+    <p>Retro airline newsroom / departure board control room — warm mechanical aesthetic for Splitflap OS.</p>
+  </header>
+
+  <!-- ════════════════════════════════ COLORS ════════════════════════════════ -->
+  <section class="sg-section" id="colors">
+    <h2 class="sg-section__title">Colors</h2>
+
+    <h3 class="sg-section__subtitle">Base Palette</h3>
+    <div class="sg-swatches">
+      <div class="sg-swatch"><div class="sg-swatch__color" style="background:#0a0908"></div><div class="sg-swatch__info"><span class="sg-swatch__name">--color-dark-0</span><span class="sg-swatch__hex">#0a0908</span></div></div>
+      <div class="sg-swatch"><div class="sg-swatch__color" style="background:#12100e"></div><div class="sg-swatch__info"><span class="sg-swatch__name">--color-dark-1</span><span class="sg-swatch__hex">#12100e</span></div></div>
+      <div class="sg-swatch"><div class="sg-swatch__color" style="background:#1e1a16"></div><div class="sg-swatch__info"><span class="sg-swatch__name">--color-dark-2</span><span class="sg-swatch__hex">#1e1a16</span></div></div>
+      <div class="sg-swatch"><div class="sg-swatch__color" style="background:#2a2420"></div><div class="sg-swatch__info"><span class="sg-swatch__name">--color-dark-3</span><span class="sg-swatch__hex">#2a2420</span></div></div>
+      <div class="sg-swatch"><div class="sg-swatch__color" style="background:#342e28"></div><div class="sg-swatch__info"><span class="sg-swatch__name">--color-dark-4</span><span class="sg-swatch__hex">#342e28</span></div></div>
+      <div class="sg-swatch"><div class="sg-swatch__color" style="background:#3e3530"></div><div class="sg-swatch__info"><span class="sg-swatch__name">--color-dark-5</span><span class="sg-swatch__hex">#3e3530</span></div></div>
+      <div class="sg-swatch"><div class="sg-swatch__color" style="background:#443c34"></div><div class="sg-swatch__info"><span class="sg-swatch__name">--color-dark-6</span><span class="sg-swatch__hex">#443c34</span></div></div>
+      <div class="sg-swatch"><div class="sg-swatch__color" style="background:#5a504a"></div><div class="sg-swatch__info"><span class="sg-swatch__name">--color-dark-7</span><span class="sg-swatch__hex">#5a504a</span></div></div>
+      <div class="sg-swatch"><div class="sg-swatch__color" style="background:#6e6258"></div><div class="sg-swatch__info"><span class="sg-swatch__name">--color-dark-8</span><span class="sg-swatch__hex">#6e6258</span></div></div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Text</h3>
+    <div class="sg-swatches">
+      <div class="sg-swatch"><div class="sg-swatch__color" style="background:#ece6dc"></div><div class="sg-swatch__info"><span class="sg-swatch__name">--color-text-primary</span><span class="sg-swatch__hex">#ece6dc</span></div></div>
+      <div class="sg-swatch"><div class="sg-swatch__color" style="background:#b8a89a"></div><div class="sg-swatch__info"><span class="sg-swatch__name">--color-text-secondary</span><span class="sg-swatch__hex">#b8a89a</span></div></div>
+      <div class="sg-swatch"><div class="sg-swatch__color" style="background:#7a6e64"></div><div class="sg-swatch__info"><span class="sg-swatch__name">--color-text-tertiary</span><span class="sg-swatch__hex">#7a6e64</span></div></div>
+      <div class="sg-swatch"><div class="sg-swatch__color" style="background:#5a504a"></div><div class="sg-swatch__info"><span class="sg-swatch__name">--color-text-disabled</span><span class="sg-swatch__hex">#5a504a</span></div></div>
+      <div class="sg-swatch"><div class="sg-swatch__color" style="background:#f0d8a0"></div><div class="sg-swatch__info"><span class="sg-swatch__name">--color-text-flap</span><span class="sg-swatch__hex">#f0d8a0</span></div></div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Accent</h3>
+    <div class="sg-swatches">
+      <div class="sg-swatch"><div class="sg-swatch__color" style="background:#e88020"></div><div class="sg-swatch__info"><span class="sg-swatch__name">--color-accent</span><span class="sg-swatch__hex">#e88020</span></div></div>
+      <div class="sg-swatch"><div class="sg-swatch__color" style="background:#f09030"></div><div class="sg-swatch__info"><span class="sg-swatch__name">--color-accent-hover</span><span class="sg-swatch__hex">#f09030</span></div></div>
+      <div class="sg-swatch"><div class="sg-swatch__color" style="background:#c06818"></div><div class="sg-swatch__info"><span class="sg-swatch__name">--color-accent-dim</span><span class="sg-swatch__hex">#c06818</span></div></div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Semantic</h3>
+    <div class="sg-swatches">
+      <div class="sg-swatch"><div class="sg-swatch__color" style="background:#5cb85c"></div><div class="sg-swatch__info"><span class="sg-swatch__name">--color-success</span><span class="sg-swatch__hex">#5cb85c</span></div></div>
+      <div class="sg-swatch"><div class="sg-swatch__color" style="background:#e8a020"></div><div class="sg-swatch__info"><span class="sg-swatch__name">--color-warning</span><span class="sg-swatch__hex">#e8a020</span></div></div>
+      <div class="sg-swatch"><div class="sg-swatch__color" style="background:#cc3333"></div><div class="sg-swatch__info"><span class="sg-swatch__name">--color-danger</span><span class="sg-swatch__hex">#cc3333</span></div></div>
+      <div class="sg-swatch"><div class="sg-swatch__color" style="background:#5b8fa8"></div><div class="sg-swatch__info"><span class="sg-swatch__name">--color-info</span><span class="sg-swatch__hex">#5b8fa8</span></div></div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════ TYPOGRAPHY ════════════════════════════════ -->
+  <section class="sg-section" id="typography">
+    <h2 class="sg-section__title">Typography</h2>
+
+    <h3 class="sg-section__subtitle">Display — Fraunces</h3>
+    <div class="sg-type-specimen">
+      <div class="sg-type-specimen__label">font-display / weight-black / text-2xl</div>
+      <div style="font-family:var(--font-display);font-weight:var(--weight-black);font-size:var(--text-2xl);color:var(--color-text-primary)">DEPARTURES & ARRIVALS</div>
+    </div>
+    <div class="sg-type-specimen">
+      <div class="sg-type-specimen__label">font-display / weight-heavy / text-xl</div>
+      <div style="font-family:var(--font-display);font-weight:var(--weight-heavy);font-size:var(--text-xl);color:var(--color-text-primary)">Now Boarding Gate 7</div>
+    </div>
+    <div class="sg-type-specimen">
+      <div class="sg-type-specimen__label">font-display / weight-heavy / text-lg</div>
+      <div style="font-family:var(--font-display);font-weight:var(--weight-heavy);font-size:var(--text-lg);color:var(--color-text-primary)">Section Heading</div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Body — Plus Jakarta Sans</h3>
+    <div class="sg-type-specimen">
+      <div class="sg-type-specimen__label">font-body / weight-medium / text-base</div>
+      <div style="font-family:var(--font-body);font-weight:var(--weight-medium);font-size:var(--text-base);color:var(--color-text-primary)">The split-flap display clicks through each character with mechanical precision. Configure your modules, set schedules, and watch your messages come alive.</div>
+    </div>
+    <div class="sg-type-specimen">
+      <div class="sg-type-specimen__label">font-body / weight-semibold / text-sm</div>
+      <div style="font-family:var(--font-body);font-weight:var(--weight-semibold);font-size:var(--text-sm);color:var(--color-text-secondary)">Button labels, UI controls, and navigation items use this weight and size.</div>
+    </div>
+    <div class="sg-type-specimen">
+      <div class="sg-type-specimen__label">font-body / weight-bold / text-xs / tracking-eyebrow / uppercase</div>
+      <div class="sf-eyebrow">Configuration &bull; Module Status &bull; Schedule</div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Mono — JetBrains Mono</h3>
+    <div class="sg-type-specimen">
+      <div class="sg-type-specimen__label">font-mono / weight-medium / text-base</div>
+      <div style="font-family:var(--font-mono);font-weight:var(--weight-medium);font-size:var(--text-base);color:var(--color-text-primary);font-variant-numeric:tabular-nums">SN: 4A3F-B7C2-9D01 &mdash; FW v2.1.0 &mdash; Module #07</div>
+    </div>
+    <div class="sg-type-specimen">
+      <div class="sg-type-specimen__label">font-mono / weight-bold / text-xl (stat value)</div>
+      <div style="font-family:var(--font-mono);font-weight:var(--weight-bold);font-size:var(--text-xl);color:var(--color-success);font-variant-numeric:tabular-nums">+042</div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Flap — Courier New</h3>
+    <div class="sg-type-specimen">
+      <div class="sg-type-specimen__label">font-flap / text-2xl / color-text-flap</div>
+      <div style="font-family:var(--font-flap);font-size:var(--text-2xl);color:var(--color-text-flap);text-shadow:0 0 8px rgba(240,216,160,0.12)">HELLO WORLD!</div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Scale</h3>
+    <div class="sg-type-specimen">
+      <div style="font-size:var(--text-2xs);margin-bottom:8px;color:var(--color-text-secondary)"><span class="sf-mono" style="color:var(--color-text-tertiary);font-size:10px">2xs 0.65rem</span> — Chip labels</div>
+      <div style="font-size:var(--text-xs);margin-bottom:8px;color:var(--color-text-secondary)"><span class="sf-mono" style="color:var(--color-text-tertiary);font-size:10px">xs 0.72rem</span> — Eyebrow text</div>
+      <div style="font-size:var(--text-sm);margin-bottom:8px;color:var(--color-text-secondary)"><span class="sf-mono" style="color:var(--color-text-tertiary);font-size:10px">sm 0.82rem</span> — Captions, metadata</div>
+      <div style="font-size:var(--text-base);margin-bottom:8px;color:var(--color-text-primary)"><span class="sf-mono" style="color:var(--color-text-tertiary);font-size:10px">base 0.92rem</span> — Body text</div>
+      <div style="font-size:var(--text-md);margin-bottom:8px;color:var(--color-text-primary)"><span class="sf-mono" style="color:var(--color-text-tertiary);font-size:10px">md 1.05rem</span> — UI labels</div>
+      <div style="font-size:var(--text-lg);margin-bottom:8px;color:var(--color-text-primary)"><span class="sf-mono" style="color:var(--color-text-tertiary);font-size:10px">lg 1.25rem</span> — Section headings</div>
+      <div style="font-size:var(--text-xl);margin-bottom:8px;color:var(--color-text-primary)"><span class="sf-mono" style="color:var(--color-text-tertiary);font-size:10px">xl 1.5rem</span> — Page titles</div>
+      <div style="font-size:var(--text-2xl);margin-bottom:8px;color:var(--color-text-primary)"><span class="sf-mono" style="color:var(--color-text-tertiary);font-size:10px">2xl 2rem</span> — Display</div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════ SPACING ════════════════════════════════ -->
+  <section class="sg-section" id="spacing">
+    <h2 class="sg-section__title">Spacing</h2>
+    <p style="color:var(--color-text-secondary);margin-bottom:20px">4px base unit. Consistent increments from 4px to 96px.</p>
+    <div class="sg-spacing-demo">
+      <div class="sg-spacing-box" style="width:4px;height:4px" title="space-1: 4px"></div>
+      <div class="sg-spacing-box" style="width:8px;height:8px" title="space-2: 8px"></div>
+      <div class="sg-spacing-box" style="width:12px;height:12px" title="space-3: 12px"></div>
+      <div class="sg-spacing-box" style="width:16px;height:16px" title="space-4: 16px"></div>
+      <div class="sg-spacing-box" style="width:20px;height:20px" title="space-5: 20px"></div>
+      <div class="sg-spacing-box" style="width:24px;height:24px" title="space-6: 24px"></div>
+      <div class="sg-spacing-box" style="width:32px;height:32px" title="space-7: 32px"></div>
+      <div class="sg-spacing-box" style="width:40px;height:40px" title="space-8: 40px"></div>
+      <div class="sg-spacing-box" style="width:48px;height:48px" title="space-9: 48px"></div>
+      <div class="sg-spacing-box" style="width:64px;height:64px" title="space-10: 64px"></div>
+    </div>
+    <div style="margin-top:12px;font-family:var(--font-mono);font-size:10px;color:var(--color-text-tertiary)">
+      1: 4px &nbsp; 2: 8px &nbsp; 3: 12px &nbsp; 4: 16px &nbsp; 5: 20px &nbsp; 6: 24px &nbsp; 7: 32px &nbsp; 8: 40px &nbsp; 9: 48px &nbsp; 10: 64px
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════ SHADOWS ════════════════════════════════ -->
+  <section class="sg-section" id="shadows">
+    <h2 class="sg-section__title">Shadows &amp; Depth</h2>
+
+    <h3 class="sg-section__subtitle">Elevation</h3>
+    <div class="sg-shadow-demo">
+      <div class="sg-shadow-box" style="box-shadow:var(--shadow-sm)">sm</div>
+      <div class="sg-shadow-box" style="box-shadow:var(--shadow-md)">md</div>
+      <div class="sg-shadow-box" style="box-shadow:var(--shadow-lg)">lg</div>
+      <div class="sg-shadow-box" style="box-shadow:var(--shadow-xl)">xl</div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Inset (physical depth)</h3>
+    <div class="sg-shadow-demo">
+      <div class="sg-shadow-box" style="box-shadow:var(--shadow-inset-sm)">inset-sm</div>
+      <div class="sg-shadow-box" style="box-shadow:var(--shadow-inset-md)">inset-md</div>
+      <div class="sg-shadow-box" style="box-shadow:var(--shadow-inset-lg)">inset-lg</div>
+      <div class="sg-shadow-box" style="box-shadow:var(--shadow-inset-flap)">inset-flap</div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Glow (focus states)</h3>
+    <div class="sg-shadow-demo">
+      <div class="sg-shadow-box" style="box-shadow:var(--shadow-glow-accent)">glow-accent</div>
+      <div class="sg-shadow-box" style="box-shadow:var(--shadow-glow-danger)">glow-danger</div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════ MOTION ════════════════════════════════ -->
+  <section class="sg-section" id="motion">
+    <h2 class="sg-section__title">Motion &amp; Easing</h2>
+    <p style="color:var(--color-text-secondary);margin-bottom:20px">Hover each box to see the easing in action. The primary easing is <code class="sf-mono" style="color:var(--color-accent)">--ease-snap</code> — a mechanical click-into-place feel.</p>
+    <div class="sg-motion-demo">
+      <div class="sg-motion-box" style="transition-timing-function:var(--ease-snap);transition-duration:var(--duration-slow)">snap</div>
+      <div class="sg-motion-box" style="transition-timing-function:var(--ease-smooth);transition-duration:var(--duration-slow)">smooth</div>
+      <div class="sg-motion-box" style="transition-timing-function:var(--ease-bounce);transition-duration:var(--duration-slow)">bounce</div>
+      <div class="sg-motion-box" style="transition-timing-function:var(--ease-in);transition-duration:var(--duration-slow)">in</div>
+      <div class="sg-motion-box" style="transition-timing-function:var(--ease-out);transition-duration:var(--duration-slow)">out</div>
+    </div>
+    <p style="color:var(--color-text-tertiary);font-size:var(--text-xs);margin-top:8px">Hover and release to compare. Slowed to 380ms here for visibility — production uses 220ms for most interactions.</p>
+    <div style="margin-top:20px">
+      <div class="sg-label">Durations</div>
+      <div class="sf-mono" style="font-size:var(--text-sm);color:var(--color-text-secondary);line-height:2">
+        instant: 60ms &nbsp;&bull;&nbsp; fast: 120ms &nbsp;&bull;&nbsp; normal: 220ms &nbsp;&bull;&nbsp; slow: 380ms &nbsp;&bull;&nbsp; slower: 600ms
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ════════════════════════════════ BUTTONS ════════════════════════════════ -->
+  <section class="sg-section" id="buttons">
+    <h2 class="sg-section__title">Buttons</h2>
+
+    <h3 class="sg-section__subtitle">Variants</h3>
+    <div class="sg-component-row">
+      <button class="sf-btn">Default</button>
+      <button class="sf-btn sf-btn--primary">Primary</button>
+      <button class="sf-btn sf-btn--success">Success</button>
+      <button class="sf-btn sf-btn--warning">Warning</button>
+      <button class="sf-btn sf-btn--danger">Danger</button>
+      <button class="sf-btn sf-btn--secondary">Secondary</button>
+      <button class="sf-btn sf-btn--ghost">Ghost</button>
+    </div>
+
+    <h3 class="sg-section__subtitle">Sizes</h3>
+    <div class="sg-component-row">
+      <button class="sf-btn sf-btn--primary sf-btn--sm">Small</button>
+      <button class="sf-btn sf-btn--primary">Default</button>
+      <button class="sf-btn sf-btn--primary sf-btn--lg">Large / Block</button>
+    </div>
+
+    <h3 class="sg-section__subtitle">States</h3>
+    <div class="sg-component-row">
+      <button class="sf-btn sf-btn--primary">Normal</button>
+      <button class="sf-btn sf-btn--primary" disabled>Disabled</button>
+    </div>
+
+    <h3 class="sg-section__subtitle">Adjustment Buttons (Calibration)</h3>
+    <div class="sg-component-row">
+      <button class="sf-btn-adj sf-btn-adj--neg">-10</button>
+      <button class="sf-btn-adj sf-btn-adj--neg">-5</button>
+      <button class="sf-btn-adj sf-btn-adj--neg">-1</button>
+      <button class="sf-btn-adj sf-btn-adj--pos">+1</button>
+      <button class="sf-btn-adj sf-btn-adj--pos">+5</button>
+      <button class="sf-btn-adj sf-btn-adj--pos">+10</button>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════ INPUTS ════════════════════════════════ -->
+  <section class="sg-section" id="inputs">
+    <h2 class="sg-section__title">Inputs</h2>
+
+    <h3 class="sg-section__subtitle">Text Input</h3>
+    <div class="sg-component-row sg-component-row--col">
+      <div class="sf-field">
+        <label class="sf-field__label">Display Name</label>
+        <input type="text" class="sf-input" placeholder="Enter display name...">
+      </div>
+      <div class="sf-field">
+        <label class="sf-field__label">Message (Mono / Flap style)</label>
+        <input type="text" class="sf-input sf-input--mono" placeholder="HELLO WORLD" value="NOW BOARDING">
+      </div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Select</h3>
+    <div class="sg-component-row sg-component-row--col">
+      <div class="sf-field">
+        <label class="sf-field__label">Timezone</label>
+        <select class="sf-select">
+          <option>America/New_York</option>
+          <option>America/Chicago</option>
+          <option>America/Los_Angeles</option>
+          <option>Europe/London</option>
+        </select>
+      </div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Textarea</h3>
+    <div class="sg-component-row sg-component-row--col">
+      <div class="sf-field">
+        <label class="sf-field__label">Custom Message</label>
+        <textarea class="sf-textarea sf-textarea--mono" rows="3">FLIGHT AA 1234
+DEPARTING 14:30
+GATE B7</textarea>
+      </div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Number Stepper</h3>
+    <div class="sg-component-row">
+      <div class="sf-stepper" style="width:160px">
+        <button class="sf-stepper__btn">−</button>
+        <input type="number" class="sf-stepper__input" value="15">
+        <button class="sf-stepper__btn">+</button>
+      </div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Password with Reveal</h3>
+    <div class="sg-component-row sg-component-row--col">
+      <div class="sf-field">
+        <label class="sf-field__label">WiFi Password</label>
+        <div class="sf-password-wrap">
+          <input type="password" class="sf-input" value="secretpassword">
+          <button class="sf-password-wrap__reveal" aria-label="Show password">👁</button>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Inline Row</h3>
+    <div class="sg-component-row sg-component-row--col">
+      <div class="sf-inline-row">
+        <label class="sf-field__label" style="margin:0;white-space:nowrap">Columns</label>
+        <div class="sf-stepper" style="width:140px">
+          <button class="sf-stepper__btn">−</button>
+          <input type="number" class="sf-stepper__input" value="15">
+          <button class="sf-stepper__btn">+</button>
+        </div>
+        <label class="sf-field__label" style="margin:0;white-space:nowrap">Rows</label>
+        <div class="sf-stepper" style="width:140px">
+          <button class="sf-stepper__btn">−</button>
+          <input type="number" class="sf-stepper__input" value="3">
+          <button class="sf-stepper__btn">+</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════ TOGGLES ════════════════════════════════ -->
+  <section class="sg-section" id="toggles">
+    <h2 class="sg-section__title">Toggles</h2>
+
+    <h3 class="sg-section__subtitle">Switch</h3>
+    <div class="sg-component-row">
+      <label class="sf-switch">
+        <input type="checkbox">
+        <span class="sf-switch__slider"></span>
+      </label>
+      <span style="color:var(--color-text-secondary);font-size:var(--text-sm)">Off</span>
+      &nbsp;&nbsp;&nbsp;
+      <label class="sf-switch">
+        <input type="checkbox" checked>
+        <span class="sf-switch__slider"></span>
+      </label>
+      <span style="color:var(--color-text-secondary);font-size:var(--text-sm)">On</span>
+    </div>
+
+    <h3 class="sg-section__subtitle">Segmented Toggle</h3>
+    <div class="sg-component-row">
+      <div class="sf-segmented">
+        <button class="sf-segmented__btn active">Clock</button>
+        <button class="sf-segmented__btn">Weather</button>
+        <button class="sf-segmented__btn">Stocks</button>
+      </div>
+    </div>
+    <div class="sg-component-row">
+      <div class="sf-segmented sf-segmented--sm">
+        <button class="sf-segmented__btn active">SM</button>
+        <button class="sf-segmented__btn">Active</button>
+      </div>
+      &nbsp;
+      <div class="sf-segmented sf-segmented--lg">
+        <button class="sf-segmented__btn active">LG</button>
+        <button class="sf-segmented__btn">Active</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════ CARDS ════════════════════════════════ -->
+  <section class="sg-section" id="cards">
+    <h2 class="sg-section__title">Cards</h2>
+
+    <h3 class="sg-section__subtitle">Basic Card</h3>
+    <div class="sf-card">
+      <h3 class="sf-card__title">Configuration</h3>
+      <p style="color:var(--color-text-secondary);margin:0;font-size:var(--text-sm)">Card content goes here. Used for settings panels, info sections, and grouped controls.</p>
+    </div>
+
+    <h3 class="sg-section__subtitle">Config Section (with accent top border)</h3>
+    <div class="sf-config-section">
+      <div class="sf-config-section__title">Network Settings</div>
+      <div class="sf-settings-grid">
+        <div class="sf-field">
+          <label class="sf-field__label">MQTT Host</label>
+          <input type="text" class="sf-input" value="192.168.1.100">
+        </div>
+        <div class="sf-field">
+          <label class="sf-field__label">Port</label>
+          <input type="number" class="sf-input" value="1883">
+        </div>
+      </div>
+    </div>
+
+    <h3 class="sg-section__subtitle">App Cards (Grid)</h3>
+    <div class="sf-apps-grid" style="max-width:500px">
+      <div class="sf-card sf-card--app">
+        <span class="sf-card--app__icon"><i data-lucide="clock"></i></span>
+        <span class="sf-card--app__name">Clock</span>
+        <span class="sf-card--app__desc">Display the current time</span>
+      </div>
+      <div class="sf-card sf-card--app running">
+        <span class="sf-card--app__icon"><i data-lucide="cloud-sun"></i></span>
+        <span class="sf-card--app__name">Weather</span>
+        <span class="sf-card--app__desc">Local forecast</span>
+        <button class="sf-card--app__gear"><i data-lucide="settings" style="width:16px;height:16px"></i></button>
+      </div>
+      <div class="sf-card sf-card--app">
+        <span class="sf-card--app__icon"><i data-lucide="trending-up"></i></span>
+        <span class="sf-card--app__name">Stocks</span>
+        <span class="sf-card--app__desc">Market ticker</span>
+      </div>
+      <div class="sf-card sf-card--app incompatible">
+        <span class="sf-card--app__icon"><i data-lucide="trophy"></i></span>
+        <span class="sf-card--app__name">Sports</span>
+        <span class="sf-card--app__desc">Requires 2+ rows</span>
+      </div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Provision Card</h3>
+    <div class="sf-provision-card" style="max-width:500px">
+      <button class="sf-provision-card__header">
+        <div>
+          <strong style="color:var(--color-text-primary)">Universal Firmware</strong>
+          <span style="display:block;color:var(--color-text-tertiary);font-size:var(--text-xs);margin-top:2px">3 modules provisioned</span>
+        </div>
+        <div class="sf-badge">All Online</div>
+      </button>
+      <div class="sf-provision-card__body">
+        <p style="color:var(--color-text-secondary);font-size:var(--text-sm);margin:0">All modules are provisioned and communicating normally.</p>
+      </div>
+    </div>
+    <div class="sf-provision-card sf-provision-card--attention" style="max-width:500px">
+      <button class="sf-provision-card__header">
+        <div>
+          <strong style="color:var(--color-text-primary)">Universal Firmware</strong>
+          <span style="display:block;color:var(--color-text-tertiary);font-size:var(--text-xs);margin-top:2px">1 unprovisioned device</span>
+        </div>
+        <div class="sf-badge sf-badge--attention">Needs Setup</div>
+      </button>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════ MODALS ════════════════════════════════ -->
+  <section class="sg-section" id="modals">
+    <h2 class="sg-section__title">Modals</h2>
+    <p style="color:var(--color-text-secondary);margin-bottom:16px;font-size:var(--text-sm)">Modals use sharp corners with an accent left-border. Below is an inline demo (not overlaid).</p>
+
+    <div class="sf-modal__content" style="position:relative">
+      <div class="sf-modal__header">
+        <h3 class="sf-modal__title">App Settings</h3>
+        <button class="sf-modal__close">&times;</button>
+      </div>
+      <div class="sf-field">
+        <label class="sf-field__label">Update Interval</label>
+        <select class="sf-select">
+          <option>Every 5 minutes</option>
+          <option>Every 15 minutes</option>
+          <option>Every hour</option>
+        </select>
+      </div>
+      <div class="sf-field">
+        <label class="sf-field__label">Location</label>
+        <input type="text" class="sf-input" value="New York, NY">
+      </div>
+      <button class="sf-btn sf-btn--primary sf-btn--block">Save</button>
+    </div>
+  </section>
+
+
+  <!-- ════════════════════════════════ FLAPS ════════════════════════════════ -->
+  <section class="sg-section" id="flaps">
+    <h2 class="sg-section__title">Flap Display</h2>
+
+    <h3 class="sg-section__subtitle">Flap Frame with Grid</h3>
+    <div class="sg-flap-demo">
+      <div class="sf-flap-frame">
+        <div class="sf-flap-grid" style="grid-template-columns:repeat(10,1fr)">
+          <div class="sf-flap-unit">H</div>
+          <div class="sf-flap-unit">E</div>
+          <div class="sf-flap-unit">L</div>
+          <div class="sf-flap-unit">L</div>
+          <div class="sf-flap-unit">O</div>
+          <div class="sf-flap-unit">&nbsp;</div>
+          <div class="sf-flap-unit">W</div>
+          <div class="sf-flap-unit">O</div>
+          <div class="sf-flap-unit">R</div>
+          <div class="sf-flap-unit">L</div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Flap Unit with Cursor</h3>
+    <div class="sg-component-row">
+      <div style="display:grid;grid-template-columns:repeat(5,48px);gap:3px">
+        <div class="sf-flap-unit" style="height:64px;font-size:1.3rem">A</div>
+        <div class="sf-flap-unit" style="height:64px;font-size:1.3rem">B</div>
+        <div class="sf-flap-unit cursor" style="height:64px;font-size:1.3rem">C</div>
+        <div class="sf-flap-unit" style="height:64px;font-size:1.3rem">D</div>
+        <div class="sf-flap-unit" style="height:64px;font-size:1.3rem">E</div>
+      </div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Design Notes</h3>
+    <div style="color:var(--color-text-secondary);font-size:var(--text-sm);line-height:var(--leading-relaxed)">
+      <ul style="margin:0;padding-left:20px">
+        <li>Beveled frame borders — different color per side simulates directional lighting</li>
+        <li>Inset shadows on each flap cell create physical depth</li>
+        <li>Golden-amber text (<code class="sf-mono" style="color:var(--color-text-flap)">#f0d8a0</code>) with subtle glow mimics aged plastic lettering</li>
+        <li>Hinge line at 50% with micro-highlight edge</li>
+        <li>Ambient warm glow on the frame</li>
+        <li>Font stays <code class="sf-mono">Courier New</code> to match hardware character set</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════ NOTICES ════════════════════════════════ -->
+  <section class="sg-section" id="notices">
+    <h2 class="sg-section__title">Notices, Toasts &amp; Badges</h2>
+
+    <h3 class="sg-section__subtitle">Notice Variants</h3>
+    <div style="display:flex;flex-direction:column;gap:12px;max-width:500px">
+      <div class="sf-notice sf-notice--info">
+        <span class="sf-notice__icon">ℹ️</span>
+        <div class="sf-notice__body">
+          <div class="sf-notice__title">Information</div>
+          <div class="sf-notice__text">Your display is connected and receiving updates normally.</div>
+        </div>
+      </div>
+      <div class="sf-notice sf-notice--warning">
+        <span class="sf-notice__icon">⚠️</span>
+        <div class="sf-notice__body">
+          <div class="sf-notice__title">Firmware Update Available</div>
+          <div class="sf-notice__text">Version 2.1.0 is available. Current: 2.0.3.</div>
+        </div>
+      </div>
+      <div class="sf-notice sf-notice--success">
+        <span class="sf-notice__icon">✓</span>
+        <div class="sf-notice__body">
+          <div class="sf-notice__title">Calibration Complete</div>
+          <div class="sf-notice__text">All 15 modules calibrated successfully.</div>
+        </div>
+      </div>
+      <div class="sf-notice sf-notice--error">
+        <span class="sf-notice__icon">✕</span>
+        <div class="sf-notice__body">
+          <div class="sf-notice__title">Connection Lost</div>
+          <div class="sf-notice__text">Unable to reach the display. Check your serial or network connection.</div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Toasts</h3>
+    <div class="sg-component-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+      <div class="sf-toast show" style="position:relative;opacity:1;transform:none;pointer-events:auto">Settings saved</div>
+      <div class="sf-toast sf-toast--error show" style="position:relative;opacity:1;transform:none;pointer-events:auto">Failed to connect to display</div>
+      <div class="sf-toast sf-toast--warn show" style="position:relative;opacity:1;transform:none;pointer-events:auto">Module 7 offline</div>
+      <div class="sf-toast sf-toast--info show" style="position:relative;opacity:1;transform:none;pointer-events:auto">Update downloading...</div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Badges</h3>
+    <div class="sg-component-row">
+      <span class="sf-badge">Online</span>
+      <span class="sf-badge sf-badge--attention">Needs Setup</span>
+      <span class="sf-badge sf-badge--danger">Error</span>
+      <span class="sf-badge sf-badge--neutral">v2.1.0</span>
+    </div>
+
+    <h3 class="sg-section__subtitle">Progress Bar</h3>
+    <div style="max-width:400px">
+      <div class="sf-progress">
+        <div class="sf-progress__fill" style="width:65%"></div>
+      </div>
+      <div class="sf-progress">
+        <div class="sf-progress__fill sf-progress__fill--accent" style="width:40%"></div>
+      </div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Active App Banner</h3>
+    <div class="sf-banner sf-banner--visible" style="max-width:500px">
+      <div class="sf-banner__dot"></div>
+      <span class="sf-banner__label">Weather is running</span>
+      <button class="sf-banner__stop">Stop</button>
+    </div>
+
+    <h3 class="sg-section__subtitle">Spinner</h3>
+    <div class="sg-component-row">
+      <div class="sf-spinner"></div>
+      <div class="sf-spinner sf-spinner--lg"></div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════ INSPECTOR ════════════════════════════════ -->
+  <section class="sg-section" id="inspector">
+    <h2 class="sg-section__title">Inspector &amp; Calibration</h2>
+
+    <h3 class="sg-section__subtitle">Stats Panel</h3>
+    <div class="sf-inspector" style="max-width:500px">
+      <div class="sf-inspector__stats">
+        <div class="sf-stat">
+          <span class="sf-stat__value">+042</span>
+          <span class="sf-stat__label">Offset</span>
+        </div>
+        <div class="sf-stat">
+          <span class="sf-stat__value" style="color:var(--color-text-flap)">A</span>
+          <span class="sf-stat__label">Current</span>
+        </div>
+        <div class="sf-stat">
+          <span class="sf-stat__value" style="color:var(--color-accent)">07</span>
+          <span class="sf-stat__label">Module</span>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Module Matrix</h3>
+    <div class="sf-mod-matrix" style="max-width:500px;grid-template-columns:repeat(8,1fr)">
+      <div class="sf-mod-cell">01</div>
+      <div class="sf-mod-cell">02</div>
+      <div class="sf-mod-cell active">03</div>
+      <div class="sf-mod-cell">04</div>
+      <div class="sf-mod-cell">05</div>
+      <div class="sf-mod-cell">06</div>
+      <div class="sf-mod-cell">07</div>
+      <div class="sf-mod-cell">08</div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Character Matrix</h3>
+    <div class="sf-char-matrix" style="max-width:400px;grid-template-columns:repeat(6,1fr)">
+      <div class="sf-char-cell">
+        <span class="sf-char-cell__id">A</span>
+        <span class="sf-char-cell__step">0</span>
+      </div>
+      <div class="sf-char-cell tuned">
+        <span class="sf-char-cell__id">B</span>
+        <span class="sf-char-cell__step">+2</span>
+      </div>
+      <div class="sf-char-cell">
+        <span class="sf-char-cell__id">C</span>
+        <span class="sf-char-cell__step">0</span>
+      </div>
+      <div class="sf-char-cell tuned">
+        <span class="sf-char-cell__id">D</span>
+        <span class="sf-char-cell__step">-1</span>
+      </div>
+      <div class="sf-char-cell">
+        <span class="sf-char-cell__id">E</span>
+        <span class="sf-char-cell__step">0</span>
+      </div>
+      <div class="sf-char-cell">
+        <span class="sf-char-cell__id">F</span>
+        <span class="sf-char-cell__step">0</span>
+      </div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Adjustment Buttons</h3>
+    <div class="sg-component-row">
+      <div class="sf-adj-controls">
+        <button class="sf-btn-adj sf-btn-adj--neg">-10</button>
+        <button class="sf-btn-adj sf-btn-adj--neg">-5</button>
+        <button class="sf-btn-adj sf-btn-adj--neg">-1</button>
+        <button class="sf-btn-adj sf-btn-adj--pos">+1</button>
+        <button class="sf-btn-adj sf-btn-adj--pos">+5</button>
+        <button class="sf-btn-adj sf-btn-adj--pos">+10</button>
+      </div>
+    </div>
+
+    <h3 class="sg-section__subtitle">Computed Info</h3>
+    <div style="max-width:400px;display:flex;flex-direction:column;gap:8px">
+      <div class="sf-computed-info">Grid: 15 columns &times; 3 rows = 45 modules</div>
+      <div class="sf-computed-info sf-computed-info--warn">Grid: 20 columns &times; 3 rows = 60 modules<span class="sf-computed-warn">Exceeds recommended maximum of 45</span></div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════ PATTERNS ════════════════════════════════ -->
+  <section class="sg-section" id="patterns">
+    <h2 class="sg-section__title">Patterns &amp; Utilities</h2>
+
+    <h3 class="sg-section__subtitle">Eyebrow Text</h3>
+    <div class="sg-component-row sg-component-row--col">
+      <span class="sf-eyebrow">Module Configuration</span>
+      <span class="sf-eyebrow sf-eyebrow--accent">Now Playing</span>
+    </div>
+
+    <h3 class="sg-section__subtitle">Section Rules</h3>
+    <div class="sg-component-row sg-component-row--col" style="gap:0">
+      <div class="sg-label">Default rule</div>
+      <hr class="sf-rule">
+      <div class="sg-label">Double rule</div>
+      <hr class="sf-rule sf-rule--double">
+      <div class="sg-label">Accent rule</div>
+      <hr class="sf-rule sf-rule--accent">
+      <div class="sg-label">Subtle rule (tight)</div>
+      <hr class="sf-rule sf-rule--subtle sf-rule--tight">
+    </div>
+
+    <h3 class="sg-section__subtitle">Film Grain</h3>
+    <div style="color:var(--color-text-secondary);font-size:var(--text-sm);line-height:var(--leading-relaxed)">
+      <p style="margin:0 0 8px">The <code class="sf-mono" style="color:var(--color-accent)">.sf-grain</code> class on <code class="sf-mono">&lt;body&gt;</code> applies a subtle SVG feTurbulence noise overlay via <code class="sf-mono">::before</code>. This page has it active — look closely at flat surfaces.</p>
+      <p style="margin:0">Controlled by <code class="sf-mono" style="color:var(--color-accent)">--grain-opacity: 0.035</code> and <code class="sf-mono" style="color:var(--color-accent)">--grain-blend: overlay</code>.</p>
+    </div>
+
+    <h3 class="sg-section__subtitle">Playlist Items</h3>
+    <div style="max-width:500px">
+      <div class="sf-playlist__item">
+        <span>GOOD MORNING</span>
+        <span class="sf-mono" style="font-size:var(--text-xs);color:var(--color-text-tertiary)">30s</span>
+      </div>
+      <div class="sf-playlist__item">
+        <span>DAILY WEATHER</span>
+        <span class="sf-mono" style="font-size:var(--text-xs);color:var(--color-text-tertiary)">60s</span>
+      </div>
+    </div>
+
+    <h3 class="sg-section__subtitle">App Playlist Entry</h3>
+    <div style="max-width:500px">
+      <div class="sf-ap-entry">
+        <span class="sf-ap-entry__label">Clock</span>
+        <input type="number" class="sf-ap-entry__dur" value="30">
+        <button class="sf-ap-entry__btn">×</button>
+      </div>
+      <div class="sf-ap-entry">
+        <span class="sf-ap-entry__label">Weather</span>
+        <input type="number" class="sf-ap-entry__dur" value="60">
+        <button class="sf-ap-entry__btn">×</button>
+      </div>
+    </div>
+
+    <h3 class="sg-section__subtitle">FAB (Floating Action Button)</h3>
+    <p style="color:var(--color-text-secondary);font-size:var(--text-sm);margin-bottom:12px">Used in Settings page for unsaved config changes, and in Playlists tab for unsaved playlist edits. Appears when dirty state is detected, disappears on save.</p>
+    <div style="position:relative;height:80px;background:var(--surface-sunken);border:1px solid var(--border-default);border-radius:var(--radius-sm);overflow:hidden">
+      <button class="sf-fab sf-fab--visible" style="position:absolute;left:24px;right:24px;bottom:12px;max-width:none">Save Settings</button>
+    </div>
+
+    <h3 class="sg-section__subtitle">Color Utilities</h3>
+    <div class="sg-component-row">
+      <span class="sf-text-primary">Primary</span>
+      <span class="sf-text-secondary">Secondary</span>
+      <span class="sf-text-tertiary">Tertiary</span>
+      <span class="sf-text-accent">Accent</span>
+      <span class="sf-text-success">Success</span>
+      <span class="sf-text-warning">Warning</span>
+      <span class="sf-text-danger">Danger</span>
+      <span class="sf-text-flap">Flap</span>
+    </div>
+
+    <h3 class="sg-section__subtitle">Border Radii</h3>
+    <div class="sg-component-row">
+      <div style="width:48px;height:48px;background:var(--surface-interactive);border:1px solid var(--border-default);border-radius:var(--radius-none);display:flex;align-items:center;justify-content:center;font-size:9px;font-family:var(--font-mono);color:var(--color-text-tertiary)">0px</div>
+      <div style="width:48px;height:48px;background:var(--surface-interactive);border:1px solid var(--border-default);border-radius:var(--radius-xs);display:flex;align-items:center;justify-content:center;font-size:9px;font-family:var(--font-mono);color:var(--color-text-tertiary)">1px</div>
+      <div style="width:48px;height:48px;background:var(--surface-interactive);border:1px solid var(--border-default);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:9px;font-family:var(--font-mono);color:var(--color-text-tertiary)">2px</div>
+      <div style="width:48px;height:48px;background:var(--surface-interactive);border:1px solid var(--border-default);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:9px;font-family:var(--font-mono);color:var(--color-text-tertiary)">3px</div>
+      <div style="width:48px;height:48px;background:var(--surface-interactive);border:1px solid var(--border-default);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;font-size:9px;font-family:var(--font-mono);color:var(--color-text-tertiary)">4px</div>
+      <div style="width:48px;height:48px;background:var(--surface-interactive);border:1px solid var(--border-default);border-radius:var(--radius-pill);display:flex;align-items:center;justify-content:center;font-size:9px;font-family:var(--font-mono);color:var(--color-text-tertiary)">pill</div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════ USAGE ════════════════════════════════ -->
+  <section class="sg-section" id="usage">
+    <h2 class="sg-section__title">Usage Guidelines</h2>
+
+    <div style="color:var(--color-text-secondary);font-size:var(--text-sm);line-height:var(--leading-relaxed)">
+      <h3 class="sg-section__subtitle">Architecture</h3>
+      <ul style="margin:0 0 24px;padding-left:20px">
+        <li><strong style="color:var(--color-text-primary)">tokens.css</strong> — Design tokens only (CSS custom properties in :root). No selectors.</li>
+        <li><strong style="color:var(--color-text-primary)">components.css</strong> — All component classes. Uses tokens exclusively — no raw hex values.</li>
+        <li><strong style="color:var(--color-text-primary)">utilities.css</strong> — Helper classes for text, spacing, layout, and effects.</li>
+      </ul>
+
+      <h3 class="sg-section__subtitle">Naming Convention</h3>
+      <ul style="margin:0 0 24px;padding-left:20px">
+        <li>BEM-lite with <code class="sf-mono" style="color:var(--color-accent)">sf-</code> prefix</li>
+        <li>Block: <code class="sf-mono">.sf-btn</code>, <code class="sf-mono">.sf-card</code></li>
+        <li>Element: <code class="sf-mono">.sf-card__title</code></li>
+        <li>Modifier: <code class="sf-mono">.sf-btn--primary</code>, <code class="sf-mono">.sf-btn--sm</code></li>
+        <li>Variant on block: <code class="sf-mono">.sf-card--app</code></li>
+      </ul>
+
+      <h3 class="sg-section__subtitle">Do / Don't</h3>
+      <ul style="margin:0 0 24px;padding-left:20px">
+        <li><span style="color:var(--color-success)">✓</span> Use token variables for all colors, spacing, and sizes</li>
+        <li><span style="color:var(--color-success)">✓</span> Use <code class="sf-mono">--ease-snap</code> for interactive transitions</li>
+        <li><span style="color:var(--color-success)">✓</span> Keep border-radius at 0-4px (brutalist aesthetic)</li>
+        <li><span style="color:var(--color-success)">✓</span> Use eyebrow text for section labels</li>
+        <li><span style="color:var(--color-danger)">✕</span> No raw hex values in component styles</li>
+        <li><span style="color:var(--color-danger)">✕</span> No border-radius above 4px (except toggle switch pill)</li>
+        <li><span style="color:var(--color-danger)">✕</span> No cool blues or pure whites — everything warm-shifted</li>
+        <li><span style="color:var(--color-danger)">✕</span> Don't change the flap font (must match hardware)</li>
+      </ul>
+
+      <h3 class="sg-section__subtitle">Aesthetic Principles</h3>
+      <ol style="margin:0;padding-left:20px">
+        <li><strong style="color:var(--color-text-primary)">Mechanical warmth</strong> — Every surface should feel like part of a precision-engineered machine. Warm browns, not cold grays.</li>
+        <li><strong style="color:var(--color-text-primary)">Physical depth</strong> — Use inset shadows on interactive elements. Buttons should feel pressable. Flaps should feel recessed.</li>
+        <li><strong style="color:var(--color-text-primary)">Editorial hierarchy</strong> — Tracked uppercase eyebrow labels, display serif for headings, clean sans for body. The UI reads like a well-typeset departure board.</li>
+        <li><strong style="color:var(--color-text-primary)">Restrained accent</strong> — Orange accent used sparingly for active states and CTAs. The dominant palette is warm neutrals.</li>
+        <li><strong style="color:var(--color-text-primary)">Analog texture</strong> — Film grain overlay adds subtle analog warmth. Beveled frame borders suggest real materials.</li>
+      </ol>
+    </div>
+  </section>
+
+</div><!-- /.sg-wrapper -->
+
+<script>lucide.createIcons();</script>
+</body>
+</html>

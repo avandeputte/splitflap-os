@@ -1,0 +1,314 @@
+/* ═══════════════════════════════════════════════════════════════════
+   SPLITFLAP OS — Design Tokens
+   Retro airline newsroom / departure board control room
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Font Faces ── */
+
+@font-face {
+  font-family: 'Fraunces';
+  src: url('fonts/fraunces-800.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fraunces';
+  src: url('fonts/fraunces-900.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('fonts/plus-jakarta-sans-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('fonts/plus-jakarta-sans-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('fonts/plus-jakarta-sans-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('fonts/jetbrains-mono-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('fonts/jetbrains-mono-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('fonts/jetbrains-mono-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* ═══════════════════════════════════════════════════════════════
+     COLOR SYSTEM
+     Warm dark palette — browns, not grays
+     ═══════════════════════════════════════════════════════════════ */
+
+  /* ── Base Palette (dark → light) ── */
+  --color-dark-0:       #0a0908;
+  --color-dark-1:       #12100e;
+  --color-dark-2:       #1e1a16;
+  --color-dark-3:       #2a2420;
+  --color-dark-4:       #342e28;
+  --color-dark-5:       #3e3530;
+  --color-dark-6:       #443c34;
+  --color-dark-7:       #5a504a;
+  --color-dark-8:       #6e6258;
+
+  /* ── Text Hierarchy ── */
+  --color-text-primary:    #ece6dc;
+  --color-text-secondary:  #b8a89a;
+  --color-text-tertiary:   #7a6e64;
+  --color-text-disabled:   #5a504a;
+  --color-text-flap:       #f0d8a0;
+
+  /* ── Accent ── */
+  --color-accent:          #e88020;
+  --color-accent-hover:    #f09030;
+  --color-accent-dim:      #c06818;
+  --color-accent-glow:     rgba(232, 128, 32, 0.15);
+  --color-accent-subtle:   rgba(232, 128, 32, 0.08);
+
+  /* ── Semantic ── */
+  --color-success:         #5cb85c;
+  --color-success-dim:     #3d7a3d;
+  --color-success-subtle:  rgba(92, 184, 92, 0.12);
+  --color-warning:         #e8a020;
+  --color-warning-dim:     #b87a18;
+  --color-warning-subtle:  rgba(232, 160, 32, 0.12);
+  --color-danger:          #cc3333;
+  --color-danger-dim:      #992626;
+  --color-danger-subtle:   rgba(204, 51, 51, 0.12);
+  --color-info:            #5b8fa8;
+  --color-info-dim:        #3d6b80;
+  --color-info-subtle:     rgba(91, 143, 168, 0.12);
+
+  /* ── Surface Aliases ── */
+  --surface-page:               var(--color-dark-1);
+  --surface-sunken:             var(--color-dark-0);
+  --surface-raised:             var(--color-dark-3);
+  --surface-overlay:            var(--color-dark-2);
+  --surface-interactive:        var(--color-dark-4);
+  --surface-interactive-hover:  var(--color-dark-6);
+  --surface-interactive-active: var(--color-dark-5);
+
+  /* ── Border Aliases ── */
+  --border-default:     var(--color-dark-5);
+  --border-subtle:      var(--color-dark-4);
+  --border-strong:      var(--color-dark-7);
+  --border-accent:      var(--color-accent);
+
+  /* ── Flap Display ── */
+  --flap-bg:                 var(--color-dark-2);
+  --flap-bg-upper:           #201c18;
+  --flap-bg-lower:           #181410;
+  --flap-text:               var(--color-text-flap);
+  --flap-text-shadow:        rgba(240, 216, 160, 0.12);
+  --flap-frame-bg:           #2e2824;
+  --flap-frame-border-top:   #4a4038;
+  --flap-frame-border-right: #3a3228;
+  --flap-frame-border-bottom:#1a1612;
+  --flap-frame-border-left:  #3e3530;
+  --flap-hinge:              #0e0c08;
+  --flap-ambient-glow:       rgba(240, 160, 48, 0.015);
+
+  /* ═══════════════════════════════════════════════════════════════
+     TYPOGRAPHY
+     Three-tier: Display serif / Body sans / Data mono
+     ═══════════════════════════════════════════════════════════════ */
+
+  /* ── Font Stacks ── */
+  --font-display:   'Fraunces', 'Georgia', serif;
+  --font-body:      'Plus Jakarta Sans', -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:      'JetBrains Mono', 'Menlo', 'Consolas', monospace;
+  --font-flap:      'JetBrains Mono', 'Menlo', 'Consolas', monospace;
+  --font-compose:   'Courier New', monospace;
+
+  /* ── Size Scale (minor third ~1.2x) ── */
+  --text-2xs:   0.65rem;
+  --text-xs:    0.72rem;
+  --text-sm:    0.82rem;
+  --text-base:  0.92rem;
+  --text-md:    1.05rem;
+  --text-lg:    1.25rem;
+  --text-xl:    1.5rem;
+  --text-2xl:   2rem;
+  --text-3xl:   2.5rem;
+  --text-4xl:   3rem;
+
+  /* ── Weights ── */
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+  --weight-heavy:    800;
+  --weight-black:    900;
+
+  /* ── Line Heights ── */
+  --leading-none:     1;
+  --leading-tight:    1.15;
+  --leading-snug:     1.3;
+  --leading-normal:   1.5;
+  --leading-relaxed:  1.65;
+
+  /* ── Letter Spacing ── */
+  --tracking-tight:      -0.02em;
+  --tracking-normal:      0;
+  --tracking-wide:        0.03em;
+  --tracking-wider:       0.08em;
+  --tracking-eyebrow:     0.18em;
+  --tracking-broadcast:   0.3em;
+
+  /* ═══════════════════════════════════════════════════════════════
+     SPACING
+     4px base unit
+     ═══════════════════════════════════════════════════════════════ */
+
+  --space-0:    0;
+  --space-px:   1px;
+  --space-1:    4px;
+  --space-2:    8px;
+  --space-3:    12px;
+  --space-4:    16px;
+  --space-5:    20px;
+  --space-6:    24px;
+  --space-7:    32px;
+  --space-8:    40px;
+  --space-9:    48px;
+  --space-10:   64px;
+  --space-11:   80px;
+  --space-12:   96px;
+
+  /* ═══════════════════════════════════════════════════════════════
+     BORDER RADII
+     Brutalist: mostly sharp. Pill only for toggle knobs.
+     ═══════════════════════════════════════════════════════════════ */
+
+  --radius-none:   0;
+  --radius-xs:     1px;
+  --radius-sm:     2px;
+  --radius-md:     3px;
+  --radius-lg:     4px;
+  --radius-pill:   999px;
+
+  /* ═══════════════════════════════════════════════════════════════
+     SHADOWS & DEPTH
+     Physical depth for mechanical tactility
+     ═══════════════════════════════════════════════════════════════ */
+
+  /* ── Inset (sunken surfaces, flap cells) ── */
+  --shadow-inset-sm:   inset 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-inset-md:   inset 0 2px 4px rgba(0, 0, 0, 0.5);
+  --shadow-inset-lg:   inset 0 3px 6px rgba(0, 0, 0, 0.6);
+  --shadow-inset-flap: inset 0 1px 3px rgba(0, 0, 0, 0.6),
+                       inset 0 -1px 1px rgba(0, 0, 0, 0.2),
+                       0 1px 0 rgba(255, 255, 255, 0.025);
+
+  /* ── Elevation ── */
+  --shadow-sm:   0 1px 3px rgba(0, 0, 0, 0.3),
+                 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md:   0 4px 12px rgba(0, 0, 0, 0.4),
+                 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-lg:   0 8px 24px rgba(0, 0, 0, 0.5),
+                 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-xl:   0 16px 48px rgba(0, 0, 0, 0.6),
+                 0 8px 16px rgba(0, 0, 0, 0.3);
+
+  /* ── Glow (accent focus) ── */
+  --shadow-glow-accent: 0 0 0 2px var(--color-accent-glow);
+  --shadow-glow-danger: 0 0 0 2px var(--color-danger-subtle);
+
+  /* ═══════════════════════════════════════════════════════════════
+     MOTION & EASING
+     Mechanical snap — the feeling of a flap clicking into place
+     ═══════════════════════════════════════════════════════════════ */
+
+  --ease-snap:     cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-smooth:   cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in:       cubic-bezier(0.4, 0, 1, 1);
+  --ease-out:      cubic-bezier(0, 0, 0.2, 1);
+  --ease-bounce:   cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --duration-instant:  60ms;
+  --duration-fast:     120ms;
+  --duration-normal:   220ms;
+  --duration-slow:     380ms;
+  --duration-slower:   600ms;
+
+  --flap-speed:        40ms;
+
+  /* ═══════════════════════════════════════════════════════════════
+     GRAIN / TEXTURE
+     Film grain for analog warmth
+     ═══════════════════════════════════════════════════════════════ */
+
+  --grain-opacity:     0.035;
+  --grain-blend:       overlay;
+
+  /* ═══════════════════════════════════════════════════════════════
+     Z-INDEX SCALE
+     ═══════════════════════════════════════════════════════════════ */
+
+  --z-base:        0;
+  --z-raised:      10;
+  --z-drawer:      100;
+  --z-modal:       200;
+  --z-toast:       300;
+  --z-grain:       9999;
+
+  /* ═══════════════════════════════════════════════════════════════
+     LAYOUT
+     ═══════════════════════════════════════════════════════════════ */
+
+  --content-max-width:   600px;
+  --top-bar-height:      52px;
+  --bottom-bar-height:   56px;
+  --drawer-width:        280px;
+
+  /* ═══════════════════════════════════════════════════════════════
+     LEGACY BRIDGE
+     Old variable names mapped to new tokens for migration
+     ═══════════════════════════════════════════════════════════════ */
+
+  --bg:           var(--surface-page);
+  --panel:        var(--surface-raised);
+  --border:       var(--border-default);
+  --accent:       var(--color-accent);
+  --accent-hover: var(--color-accent-dim);
+  --text:         var(--color-text-primary);
+  --text-muted:   var(--color-text-tertiary);
+  --green:        var(--color-success);
+  --orange:       var(--color-warning);
+  --red:          var(--color-danger);
+}
