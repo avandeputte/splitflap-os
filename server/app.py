@@ -165,7 +165,8 @@ def _open_connection():
 ser, SERIAL_PORT = _open_connection()
 
 # --- GLOBAL STATE ---
-FLAP_CHARS = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$&()-+=;q:%'.,/?*roygbpw"
+DEFAULT_FLAP_CHARS = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$&()-+=;q:%'.,/?*roygbpw"
+FLAP_CHARS = DEFAULT_FLAP_CHARS
 current_indices = [-1] * 45  # resized after settings load
 current_display_string = " " * 45
 is_homed = False
@@ -262,6 +263,8 @@ def load_settings():
         "gateway_prefix":   "splitflap",
         "gateway_user":     "",
         "gateway_password": "",
+        "char_map": DEFAULT_FLAP_CHARS,
+        "module_configs": {},
         "triggers_enabled": True,
         "triggers": [],
         "installed_apps": [
@@ -290,6 +293,17 @@ def save_settings(data):
         json.dump(data, f, indent=4)
 
 settings = load_settings()
+FLAP_CHARS = settings.get("char_map", DEFAULT_FLAP_CHARS)
+
+
+def get_module_char_map(mod_id):
+    cfg = settings.get("module_configs", {}).get(str(mod_id), {})
+    return cfg.get("char_map", FLAP_CHARS)
+
+
+def get_module_flap_count(mod_id):
+    cfg = settings.get("module_configs", {}).get(str(mod_id), {})
+    return cfg.get("flap_count", len(get_module_char_map(mod_id)))
 
 
 # ============================================================
@@ -661,6 +675,44 @@ def sync_hardware_data(mod_id):
     return False
 
 
+def sync_module_config(mod_id):
+    """Query module's A command for flap count and character map (Universal Firmware v31+)."""
+    if not ser:
+        return False
+    with serial_lock:
+        ser.reset_input_buffer()
+        ser.write(f"m{mod_id:02d}A\n".encode())
+        ser.flush()
+        start = time.time()
+        buffer = b""
+        target = f"m{mod_id:02d}A:".encode('ascii')
+        while time.time() - start < 5.0:
+            if ser.in_waiting > 0:
+                try:
+                    chunk = ser.read(ser.in_waiting)
+                    buffer += chunk
+                    if target in buffer and b'\n' in buffer[buffer.find(target):]:
+                        line = buffer[buffer.find(target):].split(b'\n')[0]
+                        data = line.split(b'A:', 1)[1]
+                        parts = data.split(b':', 9)
+                        if len(parts) >= 10:
+                            flap_count = int(parts[8])
+                            char_map_bytes = parts[9]
+                            char_map = char_map_bytes.decode('cp1252', errors='replace')
+                            if "module_configs" not in settings:
+                                settings["module_configs"] = {}
+                            settings["module_configs"][str(mod_id)] = {
+                                "flap_count": flap_count,
+                                "char_map": char_map,
+                            }
+                            save_settings(settings)
+                            return True
+                except Exception as e:
+                    logging.error(f"A command parse error: {e}")
+            time.sleep(0.05)
+    return False
+
+
 @app.route('/serial_ports', methods=['GET'])
 def list_serial_ports():
     """List available serial ports on the system."""
@@ -1011,6 +1063,12 @@ def get_animation_order(style='ltr', rows=None, cols=None):
 #  DISPLAY
 # ============================================================
 
+def _rotation_time(max_dist):
+    """Estimate seconds for the slowest module to finish rotating max_dist positions."""
+    n = get_module_count()
+    min_flap_count = min(get_module_flap_count(i) for i in range(n)) if n else 64
+    return max_dist * (4.0 / min_flap_count)
+
 COLOR_MAP = {
     '\U0001f7e5': 'r', '\U0001f7e7': 'o', '\U0001f7e8': 'y', '\U0001f7e9': 'g',
     '\U0001f7e6': 'b', '\U0001f7ea': 'p', '\u2b1c': 'w', '\u2b1b': ' ',
@@ -1032,27 +1090,29 @@ def send_to_display_sync(text):
     dists = []
     for i in range(n):
         char = clean_text[i]
-        target_idx = FLAP_CHARS.find(char)
+        flap_count = get_module_flap_count(i)
+        char_map = get_module_char_map(i)
+        target_idx = char_map.find(char)
         if target_idx == -1:
             target_idx = 0
         # Treat -1 (pre-home unknown) as position 0 so sync stagger works on first run
         current = 0 if current_indices[i] == -1 else current_indices[i]
-        dist = (target_idx - current) % 64
-        dists.append((i, char, target_idx, dist))
+        dist = (target_idx - current) % flap_count
+        dists.append((i, char, target_idx, dist, flap_count))
 
     max_dist = max(d[3] for d in dists) if dists else 0
     dists_sorted = sorted(dists, key=lambda x: -x[3])
 
     t0 = time.time()
     with serial_lock:
-        for i, char, target_idx, dist in dists_sorted:
-            delay_before = (max_dist - dist) * (4.0 / 64.0)
+        for i, char, target_idx, dist, flap_count in dists_sorted:
+            delay_before = (max_dist - dist) * (4.0 / flap_count)
             elapsed = time.time() - t0
             remaining = delay_before - elapsed
             if remaining > 0:
                 time.sleep(remaining)
             if ser and not sim_mode:
-                ser.write(f"m{i:02d}-{char}\n".encode())
+                ser.write(f"m{i:02d}-{char}\n".encode('cp1252', errors='replace'))
                 ser.flush()
             current_indices[i] = target_idx
 
@@ -1079,16 +1139,18 @@ def send_to_display_slot(text, effect_speed=80):
     # Ensure spin char differs from target so the lock-in is always visible
     spin_chars = []
     for i in range(n):
-        target_idx = FLAP_CHARS.find(clean_text[i])
+        char_map = get_module_char_map(i)
+        target_idx = char_map.find(clean_text[i])
         if target_idx == -1: target_idx = 0
-        candidates = [c for c in FLAP_CHARS[1:len(FLAP_CHARS)-4] if FLAP_CHARS.find(c) != target_idx]
-        spin_chars.append(random.choice(candidates) if candidates else FLAP_CHARS[1])
+        candidates = [c for c in char_map[1:len(char_map)-4] if char_map.find(c) != target_idx]
+        spin_chars.append(random.choice(candidates) if candidates else char_map[1])
     with serial_lock:
         for i in range(n):
             if ser and not sim_mode:
-                ser.write(f"m{i:02d}-{spin_chars[i]}\n".encode())
+                ser.write(f"m{i:02d}-{spin_chars[i]}\n".encode('cp1252', errors='replace'))
                 ser.flush()
-            idx = FLAP_CHARS.find(spin_chars[i])
+            char_map = get_module_char_map(i)
+            idx = char_map.find(spin_chars[i])
             current_indices[i] = idx if idx != -1 else 0
 
     time.sleep(1.5)
@@ -1099,13 +1161,15 @@ def send_to_display_slot(text, effect_speed=80):
         for i in range(n):
             char = clean_text[i]
             if ser and not sim_mode:
-                ser.write(f"m{i:02d}-{char}\n".encode())
+                ser.write(f"m{i:02d}-{char}\n".encode('cp1252', errors='replace'))
                 ser.flush()
                 time.sleep(effect_speed / 1000.0)
-            target_idx = FLAP_CHARS.find(char)
+            char_map = get_module_char_map(i)
+            flap_count = get_module_flap_count(i)
+            target_idx = char_map.find(char)
             if target_idx == -1:
                 target_idx = 0
-            dist = (target_idx - current_indices[i]) % 64
+            dist = (target_idx - current_indices[i]) % flap_count
             if dist > max_dist:
                 max_dist = dist
             current_indices[i] = target_idx
@@ -1177,14 +1241,15 @@ def send_to_display(text, order=None, raw=False, step_delay_ms=15):
                 continue
             char = clean_text[i]
             if ser and not sim_mode:
-                ser.write(f"m{i:02d}-{char}\n".encode())
+                ser.write(f"m{i:02d}-{char}\n".encode('cp1252', errors='replace'))
                 ser.flush()
                 time.sleep(step_delay_ms / 1000.0)
 
-            target_idx = FLAP_CHARS.find(char)
+            target_idx = get_module_char_map(i).find(char)
             if target_idx == -1:
                 target_idx = 0
-            dist = 128 if current_indices[i] == -1 else (target_idx - current_indices[i]) % 64
+            flap_count = get_module_flap_count(i)
+            dist = 128 if current_indices[i] == -1 else (target_idx - current_indices[i]) % flap_count
             if dist > max_dist:
                 max_dist = dist
             current_indices[i] = target_idx
@@ -1539,7 +1604,7 @@ def _show_notify_message(msg):
     order = get_animation_order(msg.get('animation', 'ltr'))
     max_dist = send_to_display(format_lines(*text.split('|')), order)
     last_sent_page = text
-    rotation_time = max_dist * (4.0 / 64.0)
+    rotation_time = _rotation_time(max_dist)
     for _ in range(int(rotation_time * 10)):
         if stop_event.is_set(): return
         time.sleep(0.1)
@@ -1576,7 +1641,7 @@ def _run_app_playlist():
                 max_dist = send_to_display(text, order, step_delay_ms=speed)
                 last_sent_page = text
                 # Wait for rotation + duration
-                rotation_time = max_dist * (4.0 / 64.0)
+                rotation_time = _rotation_time(max_dist)
                 for _ in range(int(rotation_time * 10)):
                     if stop_event.is_set():
                         stop_event.clear()
@@ -1643,7 +1708,7 @@ def _run_app_playlist():
                             max_dist = _send_with_effect(page_text, page_style if not is_anim else anim_style_ap, page_speed, is_anim, app_id=reg)
                             last_sent_page = page_text
 
-                        rotation_time = max_dist * (4.0 / 64.0)
+                        rotation_time = _rotation_time(max_dist)
                         for _ in range(int(rotation_time * 10)):
                             if stop_event.is_set() or time.time() >= deadline: break
                             time.sleep(0.1)
@@ -1889,7 +1954,7 @@ def playlist_loop():
             # Skip rotation wait if manifest opts out (e.g. continuous random spin)
             skip_rot = reg_key in _plugin_registry and _plugin_registry[reg_key].get('skip_rotation_wait')
             if not skip_rot:
-                rotation_time = max_dist * (4.0 / 64.0)
+                rotation_time = _rotation_time(max_dist)
                 for _ in range(int(rotation_time * 10)):
                     if stop_event.is_set(): break
                     time.sleep(0.1)
@@ -2020,18 +2085,23 @@ def toggle_sim():
 
 @app.route('/settings', methods=['GET', 'POST'])
 def handle_settings():
-    global settings, is_homed, current_indices, current_display_string
+    global settings, is_homed, current_indices, current_display_string, FLAP_CHARS
     if request.method == 'POST':
         data   = request.json
         action = data.get('action')
         mod_id = str(data.get('id', '0'))
 
         if action == 'save_global':
+            # Validate char_map before applying
+            if 'char_map' in data and len(data['char_map']) != 64:
+                return jsonify(error="Character map must be exactly 64 characters"), 400
             # Save any key except internal/protected ones
             protected = {'action', 'id', 'offsets', 'calibrations', 'tuned_chars', 'installed_apps', 'saved_playlists', 'saved_app_playlists'}
             for k, v in data.items():
                 if k not in protected:
                     settings[k] = v
+            if 'char_map' in data:
+                FLAP_CHARS = settings['char_map']
             if 'sim_rows' in data or 'sim_cols' in data:
                 resize_grid()
             save_settings(settings)
@@ -2121,12 +2191,14 @@ def custom_tune():
 def sync_module():
     mod_id  = int(request.json.get('id', 0))
     success = sync_hardware_data(mod_id)
+    sync_module_config(mod_id)
     return jsonify(status="success" if success else "failed", settings=settings)
 
 @app.route('/sync_all', methods=['POST'])
 def sync_all():
     for i in range(get_module_count()):
         sync_hardware_data(i)
+        sync_module_config(i)
     return jsonify(status="success", settings=settings)
 
 @app.route('/assign_id', methods=['POST'])
@@ -2219,14 +2291,18 @@ def auto_tune_route():
 
     elif action == 'goto_char':
         char_idx = int(data.get('char_index', 0))
-        if 0 <= char_idx < len(FLAP_CHARS):
-            ch = FLAP_CHARS[char_idx]
-            # Build 45-char string of the same character and send raw
-            # (raw=True so lowercase colour chars are not uppercased)
-            text = ch * get_module_count()
-            send_to_display(text, raw=True)
-            return jsonify(status="ok", char=ch, index=char_idx)
-        return jsonify(status="error", message="Invalid index"), 400
+        n = get_module_count()
+        # Build per-module string: each module gets the char at char_idx in its own map
+        chars = []
+        for i in range(n):
+            char_map = get_module_char_map(i)
+            if 0 <= char_idx < len(char_map):
+                chars.append(char_map[char_idx])
+            else:
+                chars.append(char_map[0])
+        text = ''.join(chars)
+        send_to_display(text, raw=True)
+        return jsonify(status="ok", char=FLAP_CHARS[char_idx] if char_idx < len(FLAP_CHARS) else ' ', index=char_idx)
 
     elif action == 'adjust':
         modules   = data.get('modules', [])
@@ -2237,7 +2313,8 @@ def auto_tune_route():
         for mod_id in modules:
             mod_str = str(mod_id)
             cal     = int(settings['calibrations'].get(mod_str, 4096))
-            expected = (char_idx * cal) // 64
+            flap_count = get_module_flap_count(mod_id)
+            expected = (char_idx * cal) // flap_count
 
             # Current value: tuned if available, else expected
             tuned_val = settings['tuned_chars'].get(mod_str, {}).get(str(char_idx))
@@ -2265,6 +2342,7 @@ def auto_tune_route():
                 char_idx,
                 new_val,
                 cal,
+                flap_count,
             )
             send_raw(save_command)
             send_raw(preview_command)
@@ -2285,7 +2363,8 @@ def auto_tune_route():
         for i in range(get_module_count()):
             mod_str  = str(i)
             cal      = int(settings['calibrations'].get(mod_str, 4096))
-            expected = (char_idx * cal) // 64
+            flap_count = get_module_flap_count(i)
+            expected = (char_idx * cal) // flap_count
             tuned    = settings['tuned_chars'].get(mod_str, {}).get(str(char_idx))
             positions[mod_str] = {
                 'expected': expected,
@@ -2306,7 +2385,8 @@ def tuning_status():
     for i in range(get_module_count()):
         mod_str = str(i)
         cal = int(settings['calibrations'].get(mod_str, 4096))
-        expected = (char_idx * cal) // 64
+        flap_count = get_module_flap_count(i)
+        expected = (char_idx * cal) // flap_count
         tuned = settings['tuned_chars'].get(mod_str, {}).get(str(char_idx))
         positions[mod_str] = {
             'expected': expected,

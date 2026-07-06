@@ -277,6 +277,7 @@
         <div class="inspector-stats">
           <div class="stat-box"><span class="stat-label">Home Offset</span><span class="stat-val" id="inspectOffset">2832</span></div>
           <div class="stat-box"><span class="stat-label">Total Steps</span><span class="stat-val" id="inspectCalib" style="color:var(--orange)">4096</span></div>
+          <div class="stat-box"><span class="stat-label">Flap Count</span><span class="stat-val" id="inspectFlapCount" style="color:var(--accent)">64</span></div>
         </div>
         <div class="adj-controls">
           <button class="btn-adj neg" onclick="adjustOffset(-32)">-32</button>
@@ -320,6 +321,11 @@
         <div><label class="field-label">Display Cols</label><input type="number" id="simCols" value="15" min="1" max="50" class="line-input" style="font-size:.95rem;margin:0"></div>
         <div><label class="field-label">Delay Between Pages (seconds)</label><input type="number" id="globalLoopDelay" value="5" min="1" max="60" step="1" class="line-input" style="font-size:.95rem;margin:0"></div>
         <div><label class="field-label">Currency Symbol</label><input type="text" id="currencySymbol" value="$" maxlength="1" oninput="setSettingsDirty(true)" class="line-input" style="font-size:.95rem;margin:0;width:60px" placeholder="$"></div>
+        <div class="span2">
+          <label class="field-label">Character Map</label>
+          <input type="text" id="charMapInput" maxlength="64" oninput="setSettingsDirty(true)" class="line-input" style="font-size:.85rem;margin:0;font-family:monospace;letter-spacing:1px" placeholder=" ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789...">
+          <p style="color:#666;font-size:.75rem;margin:4px 0 0">Default character map (64 chars). Per-module maps are synced from firmware via "Sync EEPROM." Position 0 = blank/home.</p>
+        </div>
         <div class="span2"><label class="field-label">Location</label><div id="globalLocationPicker"></div></div>
         <div class="span2"><label class="field-label">Timezone</label><div id="globalTzPicker"></div></div>
       </div>
