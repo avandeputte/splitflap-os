@@ -694,11 +694,32 @@ def sync_module_config(mod_id):
                     if target in buffer and b'\n' in buffer[buffer.find(target):]:
                         line = buffer[buffer.find(target):].split(b'\n')[0]
                         data = line.split(b'A:', 1)[1]
-                        parts = data.split(b':', 9)
-                        if len(parts) >= 10:
-                            flap_count = int(parts[8])
-                            char_map_bytes = parts[9]
+                        logging.info(f"Module {mod_id} A response: {data!r}")
+                        # Split all fields; flapCount is the first numeric field
+                        # after the tuned_chars field, char_map is everything after.
+                        # Format: ver:id:serial:offset:steps:autoHome:curIdx:tunedPairs:flapCount:charMap
+                        # Some firmware versions add extra fields, so find flapCount
+                        # by scanning for a small integer (1-64) followed by the final field.
+                        parts = data.split(b':')
+                        # Find flap_count: scan backwards from the end looking for
+                        # the last small integer field before the char map.
+                        # The char map is the final field and is always > 1 char long.
+                        flap_count = None
+                        char_map_bytes = None
+                        # Try known positions: field index 8 or 9 for flapCount
+                        for fc_idx in (8, 9):
+                            if fc_idx < len(parts) - 1:
+                                try:
+                                    fc = int(parts[fc_idx])
+                                    if 1 <= fc <= 64:
+                                        flap_count = fc
+                                        char_map_bytes = b':'.join(parts[fc_idx + 1:])
+                                        break
+                                except ValueError:
+                                    continue
+                        if flap_count and char_map_bytes:
                             char_map = char_map_bytes.decode('cp1252', errors='replace')
+                            logging.info(f"Module {mod_id}: flap_count={flap_count}, char_map={char_map!r}")
                             if "module_configs" not in settings:
                                 settings["module_configs"] = {}
                             settings["module_configs"][str(mod_id)] = {
@@ -707,6 +728,8 @@ def sync_module_config(mod_id):
                             }
                             save_settings(settings)
                             return True
+                        else:
+                            logging.warning(f"Module {mod_id} A response: could not find flap_count in {len(parts)} fields")
                 except Exception as e:
                     logging.error(f"A command parse error: {e}")
             time.sleep(0.05)
