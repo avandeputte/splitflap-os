@@ -2851,6 +2851,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     document.getElementById('notifyConfig').style.display = toggle.checked ? 'block' : 'none';
   });
   fetch('/settings').then(r=>r.json()).then(data=>{
+    globalSettings = data;
     if(data.char_map && data.char_map.length === 64) CHAR_MAP = data.char_map;
   });
 });
