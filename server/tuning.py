@@ -6,6 +6,7 @@ def build_tuning_adjust_commands(
     char_index,
     step_position,
     calibration_steps,
+    flap_count=64,
 ):
     """Return commands that save and immediately preview a tuned position.
 
@@ -20,11 +21,12 @@ def build_tuning_adjust_commands(
     char_index = int(char_index)
     step_position = int(step_position)
     calibration_steps = int(calibration_steps)
+    flap_count = int(flap_count)
 
     if module_id < 0 or module_id > 254:
         raise ValueError("Module ID must be between 0 and 254.")
-    if char_index < 0 or char_index > 63:
-        raise ValueError("Character index must be between 0 and 63.")
+    if char_index < 0 or char_index >= flap_count:
+        raise ValueError(f"Character index must be between 0 and {flap_count - 1}.")
     if calibration_steps <= 0:
         raise ValueError("Calibration steps must be positive.")
     if step_position < 0:
