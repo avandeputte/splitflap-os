@@ -1,10 +1,21 @@
-def fetch(settings, format_lines, get_rows, get_cols):
+def fetch(settings, format_lines, get_rows, get_cols, i18n=None):
     import yfinance as yf
     tickers = [s.strip() for s in settings.get('stocks_list', '').split(',') if s.strip()]
     if not tickers:
         return [format_lines('STOCKS', 'NO TICKERS', 'CONFIGURE')]
     currency = settings.get('currency_symbol', '$').strip() or '$'
+    no_color = settings.get('disable_colors', 'no') == 'yes'
     rows = get_rows()
+
+    # Numbers follow the global Language (1,234.50 vs 1.234,50 vs 1 234,50).
+    def n(v, d=2, grouping=True):
+        if i18n is not None:
+            return i18n.number(v, d, grouping)
+        return f'{v:,.{d}f}' if grouping else f'{v:.{d}f}'
+
+    def pct(v):
+        return f"{'+' if v >= 0 else '-'}{n(abs(v), 1, grouping=False)}%"
+
     pages = []
     for i in range(0, len(tickers), rows):
         chunk = tickers[i:i+rows]
@@ -16,9 +27,9 @@ def fetch(settings, format_lines, get_rows, get_cols):
                 price = info['lastPrice']
                 prev = info['previousClose']
                 chg = ((price - prev) / prev) * 100
-                icon = '🟩' if chg >= 0 else '🟥'
-                price_lines.append(f'{sym} {currency}{price:.2f}')
-                change_lines.append(f'{sym} {icon}{chg:+.1f}%')
+                icon = '' if no_color else ('🟩' if chg >= 0 else '🟥')
+                price_lines.append(f'{sym} {currency}{n(price, 2)}')
+                change_lines.append(f'{sym} {icon}{pct(chg)}')
             except Exception:
                 price_lines.append(f'{sym} ERR')
                 change_lines.append(f'{sym} ERR')
