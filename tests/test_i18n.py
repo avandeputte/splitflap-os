@@ -22,21 +22,56 @@ D = datetime(2026, 7, 10, 15, 48, 5)
 
 class TranslateTests(unittest.TestCase):
     def test_english_is_passthrough(self):
-        # No language, English, and any en-* region all return the key unchanged.
+        # No language, English, and any en-* region all return the text unchanged.
         for lang in (None, "", "en", "en-US", "en-GB"):
-            self.assertEqual(i18n.translate("SUNSET", lang), "SUNSET")
+            self.assertEqual(i18n.translate("SUNSET", lang, "sun"), "SUNSET")
 
     def test_known_translation(self):
-        self.assertEqual(i18n.translate("SUNSET", "fr"), "COUCHER")
-        self.assertEqual(i18n.translate("FULL MOON", "de"), "VOLLMOND")
-        self.assertEqual(i18n.translate("GOLD", "nl"), "GOUD")
+        self.assertEqual(i18n.translate("SUNSET", "fr", "sun"), "COUCHER")
+        self.assertEqual(i18n.translate("FULL MOON", "de", "moon"), "VOLLMOND")
+        self.assertEqual(i18n.translate("GOLD", "nl", "metals"), "GOUD")
 
     def test_unknown_key_falls_back_to_english(self):
-        self.assertEqual(i18n.translate("TOTALLY UNKNOWN", "fr"), "TOTALLY UNKNOWN")
+        self.assertEqual(i18n.translate("TOTALLY UNKNOWN", "fr", "sun"), "TOTALLY UNKNOWN")
 
     def test_unknown_language_falls_back_to_english_key(self):
-        # A language we don't have a translation for keeps the English key.
-        self.assertEqual(i18n.translate("SUNSET", "sw"), "SUNSET")
+        # A language we don't have a translation for keeps the English text.
+        self.assertEqual(i18n.translate("SUNSET", "sw", "sun"), "SUNSET")
+
+    def test_wrong_context_does_not_leak(self):
+        # SUNSET lives in the 'sun' domain, so asking a different domain must not
+        # find it (it's not a 'common' word) -> English text.
+        self.assertEqual(i18n.translate("SUNSET", "fr", "weather"), "SUNSET")
+
+
+class ContextKeyTests(unittest.TestCase):
+    """The same English word carries different translations per context/domain
+    (gettext msgctxt), and a shared 'common' domain backs every context."""
+
+    def test_homograph_splits_by_context(self):
+        # HIGH: a weather level vs a tide height -> different French words.
+        self.assertEqual(i18n.translate("HIGH", "fr", "weather"), "ELEVE")
+        self.assertEqual(i18n.translate("HIGH", "fr", "tides"), "HAUTE")
+        self.assertNotEqual(i18n.translate("HIGH", "fr", "weather"),
+                            i18n.translate("HIGH", "fr", "tides"))
+        self.assertEqual(i18n.translate("LOW", "fr", "tides"), "BASSE")
+
+    def test_shared_time_vocabulary_is_one_domain(self):
+        # DAYS/IN are one meaning shared by many apps -> a single 'time' domain,
+        # not duplicated per app. countdown/holidays/f1/rocket all use ctx='time'.
+        self.assertEqual(i18n.translate("DAYS", "fr", "time"), "JOURS")
+        self.assertEqual(i18n.translate("IN", "fr", "time"), "DANS")
+        self.assertEqual(i18n.translate("NOW", "de", "time"), "JETZT")
+
+    def test_common_domain_fallback(self):
+        # 'OFFLINE' lives only in 'common'; any domain resolves it via fallback.
+        for ctx in ("aurora", "sentiment", "weather"):
+            self.assertEqual(i18n.translate("OFFLINE", "fr", ctx), "HORS LIGNE")
+
+    def test_default_context_is_common(self):
+        self.assertEqual(i18n.translate("OFFLINE", "fr"), "HORS LIGNE")
+        # A domain-specific word is NOT found under the default (common) context.
+        self.assertEqual(i18n.translate("SUNSET", "fr"), "SUNSET")
 
 
 class DurationAndClockTests(unittest.TestCase):
@@ -49,6 +84,13 @@ class DurationAndClockTests(unittest.TestCase):
         self.assertEqual(i18n.duration_unit("D", "en-US"), "D")
         self.assertEqual(i18n.duration_unit("H", None), "H")
         self.assertEqual(i18n.duration_unit("Z", "fr"), "Z")   # unknown key
+
+    def test_duration_lives_in_time_domain(self):
+        # Abbreviations and full-word forms are one duration vocabulary in 'time'.
+        self.assertEqual(i18n.duration_unit("D", "fr"), i18n.translate("D", "fr", "time"))
+        self.assertEqual(i18n.translate("WEEKS", "fr", "time"), "SEMAINES")
+        self.assertEqual(i18n.translate("YEARS", "de", "time"), "JAHRE")
+        self.assertEqual(i18n.translate("SECONDS", "es", "time"), "SEGUNDOS")
 
     def test_uses_24h(self):
         self.assertFalse(i18n.uses_24h("en-US"))
@@ -84,13 +126,13 @@ class CurrencyCountryHolidayTests(unittest.TestCase):
 class LocalizerTests(unittest.TestCase):
     def test_translate_and_flags(self):
         fr = i18n.Localizer("fr")
-        self.assertEqual(fr.t("SUNSET"), "COUCHER")
+        self.assertEqual(fr.t("SUNSET", "sun"), "COUCHER")
         self.assertTrue(fr.is_24h)
         self.assertEqual(fr.unit("D"), "J")
 
     def test_english_localizer_is_noop(self):
         en = i18n.Localizer("en-US")
-        self.assertEqual(en.t("SUNSET"), "SUNSET")
+        self.assertEqual(en.t("SUNSET", "sun"), "SUNSET")
         self.assertFalse(en.is_24h)
 
     def test_lang_base_strips_region(self):
@@ -141,16 +183,20 @@ class LocalizationDataFileTests(unittest.TestCase):
         path = pathlib.Path(i18n.__file__).with_name("i18n_data.json")
         self.assertTrue(path.is_file(), "i18n_data.json must ship next to i18n.py")
         data = json.loads(path.read_text(encoding="utf-8"))
-        for section in ("languages", "strings", "duration_units", "holidays",
+        for section in ("languages", "strings", "holidays",
                         "base_currency", "country"):
             self.assertIn(section, data)
             self.assertTrue(data[section], f"{section} should not be empty")
-        # Translation sections use the {context, translations} schema; every string
-        # carries a translator context note, and known entries survive the round-trip.
-        for key, entry in data["strings"].items():
-            self.assertIn("context", entry, f"{key} missing context note")
-            self.assertIn("translations", entry)
-        self.assertEqual(data["strings"]["SUNSET"]["translations"]["fr"], "COUCHER")
+        # 'strings' is grouped by context/domain; each entry uses the
+        # {context, translations} schema, with a translator context note.
+        for domain, entries in data["strings"].items():
+            for key, entry in entries.items():
+                self.assertIn("context", entry, f"{domain}.{key} missing context note")
+                self.assertIn("translations", entry)
+        self.assertEqual(data["strings"]["sun"]["SUNSET"]["translations"]["fr"], "COUCHER")
+        # The same word differs by domain (weather level vs tide height).
+        self.assertEqual(data["strings"]["weather"]["HIGH"]["translations"]["fr"], "ELEVE")
+        self.assertEqual(data["strings"]["tides"]["HIGH"]["translations"]["fr"], "HAUTE")
         self.assertEqual(data["holidays"]["christmas day"]["translations"]["fr"], "Noël")
         self.assertEqual(data["base_currency"]["en-gb"], "GBP")
         self.assertEqual(data["country"]["nl"], "NL")
@@ -158,15 +204,15 @@ class LocalizationDataFileTests(unittest.TestCase):
     def test_loader_populates_module_tables(self):
         self.assertTrue(all([i18n._STRINGS, i18n._DURATION_UNITS, i18n._HOLIDAYS,
                              i18n._BASE_CURRENCY, i18n._COUNTRY, i18n.LANGUAGE_OPTIONS]))
-        # The loader flattens {context, translations} into {key: {lang: value}}.
-        self.assertEqual(i18n._STRINGS["SUNSET"]["fr"], "COUCHER")
+        # The loader flattens into {domain: {NAME: {lang: value}}}.
+        self.assertEqual(i18n._STRINGS["sun"]["SUNSET"]["fr"], "COUCHER")
 
     def test_missing_file_degrades_gracefully(self):
         original = i18n._DATA_PATH
         try:
             i18n._DATA_PATH = original + ".does-not-exist"
-            strings, units, holidays, cur, country, langs = i18n._load_i18n_data()
-            self.assertEqual((strings, units, holidays, cur, country), ({}, {}, {}, {}, {}))
+            strings, holidays, cur, country, langs = i18n._load_i18n_data()
+            self.assertEqual((strings, holidays, cur, country), ({}, {}, {}, {}))
             # ...but the Language list still has at least English so the UI works.
             self.assertTrue(langs and langs[0]["value"].startswith("en"))
         finally:
@@ -189,7 +235,8 @@ class RegionalVariantTests(unittest.TestCase):
     its own currency/country (pt-BR reuses pt words but resolves to Brazil / BRL)."""
 
     def test_variant_inherits_base_translations(self):
-        self.assertEqual(i18n.translate("SUNSET", "pt-BR"), i18n.translate("SUNSET", "pt"))
+        self.assertEqual(i18n.translate("SUNSET", "pt-BR", "sun"),
+                         i18n.translate("SUNSET", "pt", "sun"))
         self.assertEqual(i18n.duration_unit("D", "pt-BR"), i18n.duration_unit("D", "pt"))
 
     def test_variant_currency_and_country_override_base(self):
@@ -206,8 +253,8 @@ class RegionalVariantTests(unittest.TestCase):
         self.assertEqual(i18n.base_currency("af"), "ZAR")
 
     def test_scandinavian_strings_present(self):
-        self.assertEqual(i18n.translate("SUNSET", "sv"), "SOLNEDGÅNG")
-        self.assertEqual(i18n.translate("SNOW", "da"), "SNE")
+        self.assertEqual(i18n.translate("SUNSET", "sv", "sun"), "SOLNEDGÅNG")
+        self.assertEqual(i18n.translate("SNOW", "da", "weather"), "SNE")
 
 
 def _accepts(fn, name):
