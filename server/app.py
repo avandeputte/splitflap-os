@@ -8,6 +8,7 @@ import logging
 import random
 import requests
 import pytz
+import unicodedata
 import yfinance as yf
 import importlib.util
 import urllib.request
@@ -1092,10 +1093,11 @@ def send_to_display_sync(text):
     global current_indices, current_display_string, is_homed
     if not text:
         return 0
-    clean_text = text.upper()
+    clean_text = unicodedata.normalize('NFC', text.upper())
     for emoji, char in COLOR_MAP.items():
         clean_text = clean_text.replace(emoji, char)
-    clean_text = clean_text.replace('"', 'q')
+    if '"' not in FLAP_CHARS:
+        clean_text = clean_text.replace('"', 'q')
     n = get_module_count()
     clean_text = clean_text.ljust(n)[:n]
     logging.info(f"DISPLAY (sync): {clean_text}")
@@ -1140,10 +1142,11 @@ def send_to_display_slot(text, effect_speed=80):
     global current_indices, current_display_string, is_homed
     if not text:
         return 0
-    clean_text = text.upper()
+    clean_text = unicodedata.normalize('NFC', text.upper())
     for emoji, char in COLOR_MAP.items():
         clean_text = clean_text.replace(emoji, char)
-    clean_text = clean_text.replace('"', 'q')
+    if '"' not in FLAP_CHARS:
+        clean_text = clean_text.replace('"', 'q')
     n = get_module_count()
     clean_text = clean_text.ljust(n)[:n]
     logging.info(f"DISPLAY (slot): {clean_text}")
@@ -1223,7 +1226,7 @@ def send_to_display(text, order=None, raw=False, step_delay_ms=15):
     # then replace emojis with color codes. Animation pages pass raw=True to
     # skip uppercasing so their color codes (r o y g b p w) stay lowercase.
     if not raw:
-        clean_text = text.upper()
+        clean_text = unicodedata.normalize('NFC', text.upper())
     else:
         clean_text = text
     for emoji, char in COLOR_MAP.items():
@@ -1232,8 +1235,10 @@ def send_to_display(text, order=None, raw=False, step_delay_ms=15):
     currency = settings.get('currency_symbol', '$').strip()
     if currency and currency != '$':
         clean_text = clean_text.replace(currency.upper(), '$')
-    # The physical " flap is addressed as 'q' in the firmware character map
-    clean_text = clean_text.replace('"', 'q')
+    # The physical " flap is addressed as 'q' in the default firmware character map.
+    # Only apply this substitution if " is not in the active char map.
+    if '"' not in FLAP_CHARS:
+        clean_text = clean_text.replace('"', 'q')
     n = get_module_count()
     clean_text = clean_text.ljust(n)[:n]
     logging.info(f"DISPLAY: {clean_text}")
